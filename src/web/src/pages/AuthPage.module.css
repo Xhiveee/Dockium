@@ -1,0 +1,57 @@
+.mobileBrand {
+  display: none;
+  margin-bottom: 6px;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.022em;
+  color: var(--ink);
+}
+
+.lead {
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 4px;
+}
+
+.error {
+  padding: 9px 11px;
+  border: 1px solid var(--danger-line);
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.footer {
+  font-size: var(--text-2xs);
+  line-height: 1.5;
+  color: var(--ink-3);
+  padding-top: 4px;
+}
+
+.hiddenLink {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobileBrand {
+    display: block;
+  }
+}

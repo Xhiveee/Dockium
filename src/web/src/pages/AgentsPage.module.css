@@ -1,0 +1,308 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 2px 2px 4px;
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+.summaryItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.summaryItem svg {
+  color: var(--ink-3);
+}
+
+.summarySep {
+  width: 1px;
+  height: 12px;
+  background: var(--line);
+}
+
+.list {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.4fr) 104px minmax(280px, 1.6fr) 88px 38px;
+  align-items: center;
+  gap: 18px;
+  min-height: 64px;
+  padding: 9px 10px 9px 14px;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.row + .row {
+  border-top: 1px solid var(--line);
+}
+
+.row:hover {
+  background: rgba(255, 255, 255, 0.017);
+}
+
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  text-align: left;
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  margin: -3px;
+}
+
+.nameCell:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.dotOn {
+  background: var(--success);
+}
+
+.dotOff {
+  background: var(--ink-3);
+}
+
+.nameBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.country {
+  color: var(--ink-3);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-xs);
+}
+
+.meta {
+  font-size: 10.5px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agentBadge {
+  margin-left: auto;
+  flex: none;
+}
+
+.versionCell,
+.instancesCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cellLabel {
+  font-size: 9.5px;
+  color: var(--ink-3);
+}
+
+.cellValue {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.warn {
+  color: var(--warning);
+  flex: none;
+}
+
+.instancesCell .cellValue {
+  color: var(--ink);
+}
+
+.resources {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  min-width: 0;
+}
+
+.resource {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.resourceHead {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.resourceHead svg {
+  color: var(--ink-3);
+  flex: none;
+}
+
+.actionsCell {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.emptyPanel {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dialogText {
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.detailChart {
+  margin-bottom: 14px;
+}
+
+.detailMeters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.networkRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.tokenBody {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+@media (max-width: 1100px) {
+  .row {
+    grid-template-columns: minmax(210px, 1.4fr) 96px minmax(220px, 1.4fr) 82px 38px;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 940px) {
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    padding: 12px 14px;
+  }
+
+  .nameCell {
+    flex: 1 1 100%;
+  }
+
+  .resources {
+    flex: 1 1 100%;
+    order: 3;
+  }
+
+  .versionCell {
+    flex: 0 1 auto;
+    order: 2;
+  }
+
+  .instancesCell {
+    flex: 0 1 auto;
+    order: 2;
+  }
+
+  .actionsCell {
+    order: 1;
+    margin-left: auto;
+  }
+
+  .agentBadge {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .summary {
+    gap: 8px;
+  }
+
+  .summarySep {
+    display: none;
+  }
+
+  .resources {
+    gap: 10px;
+  }
+
+  .resourceHead {
+    font-size: 9px;
+  }
+}

@@ -1,0 +1,156 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.securityPanel {
+  grid-row: span 2;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inlineForm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inlineForm > :first-child {
+  flex: 1;
+}
+
+.passwordForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.passwordRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.formActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sessionPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+
+.sessionInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-2);
+}
+
+.sessionInfo > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.sessionTitle {
+  font-size: var(--text-xs);
+  color: var(--ink);
+}
+
+.sessionMeta {
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+.sessionDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  flex: none;
+}
+
+.sessionDot[data-status='live'] {
+  background: var(--success);
+}
+
+.sessionDot[data-status='connecting'] {
+  background: var(--info);
+}
+
+.sessionDot[data-status='reconnecting'] {
+  background: var(--warning);
+}
+
+.sessionDot[data-status='offline'] {
+  background: var(--danger);
+}
+
+.securityLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.securityLink:hover {
+  color: var(--ink);
+}
+
+.hint {
+  font-size: 10.5px;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+.code {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1000px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .securityPanel {
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .passwordRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .inlineForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

@@ -1,0 +1,14 @@
+.clear {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 4px;
+  border-radius: var(--radius-xs);
+  color: var(--ink-3);
+}
+
+.clear:hover {
+  color: var(--ink);
+  background: var(--surface-3);
+}

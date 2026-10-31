@@ -1,0 +1,63 @@
+.screen {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  background: var(--bg-page);
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: min(280px, 80vw);
+  animation: dockium-fade-in var(--dur-slow) var(--ease-out) both;
+}
+
+.progress {
+  width: 100%;
+  height: 2px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.bar {
+  display: block;
+  width: 34%;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: boot-slide 1.4s var(--ease-in-out) infinite;
+}
+
+.caption {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+.version {
+  position: absolute;
+  bottom: 22px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+@keyframes boot-slide {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(310%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+}

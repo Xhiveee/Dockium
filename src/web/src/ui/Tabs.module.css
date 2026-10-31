@@ -1,0 +1,143 @@
+.tabs {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.tab:hover:not(:disabled) {
+  color: var(--ink);
+}
+
+.tab:disabled {
+  opacity: 0.4;
+}
+
+.active {
+  color: var(--ink);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  opacity: 0.9;
+}
+
+.count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+  padding: 3px 5px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-3);
+  color: var(--ink-2);
+}
+
+.indicator {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--radius-sm);
+  transition:
+    transform var(--dur-slow) var(--ease-spring),
+    width var(--dur-slow) var(--ease-spring),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.underline {
+  gap: var(--space-5);
+  border-bottom: 1px solid var(--line);
+}
+
+.underline .tab {
+  padding: 0 1px 11px;
+  border-radius: 0;
+}
+
+.underline .indicator {
+  top: auto;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+}
+
+.pill {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--surface-inset);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  gap: 2px;
+}
+
+.pill .tab {
+  padding: 0 11px;
+  height: 28px;
+}
+
+.pill.md .tab {
+  height: 32px;
+  padding: 0 13px;
+}
+
+.pill .indicator {
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  inset: 3px auto 3px 0;
+}
+
+.pill .indicator {
+  top: 3px;
+  bottom: 3px;
+}
+
+.sm .tab {
+  font-size: var(--text-xs);
+}
+
+.sm.pill .tab {
+  height: 26px;
+  padding: 0 10px;
+}
+
+@media (max-width: 520px) {
+  .sm .tab {
+    font-size: 11px;
+    padding: 0 8px;
+  }
+
+  .sm.pill .tab {
+    height: 25px;
+    padding: 0 8px;
+  }
+
+  .sm .count {
+    padding: 2px 4px;
+    font-size: 9px;
+  }
+}

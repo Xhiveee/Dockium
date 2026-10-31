@@ -1,0 +1,219 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 46px;
+  padding: 6px 12px 6px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.toolbarTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-3);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.rowsHead,
+.row {
+  display: grid;
+  grid-template-columns:
+    minmax(160px, 1.5fr)
+    100px
+    minmax(170px, 1.3fr)
+    132px
+    44px
+    34px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 10px 0 14px;
+}
+
+.rowsHead {
+  height: 34px;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.row {
+  min-height: 54px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.row + .row {
+  border-top: 1px solid var(--line);
+}
+
+.nameCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  font-size: 10px;
+  color: var(--ink-3);
+}
+
+.error {
+  font-size: 10px;
+  color: var(--danger);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule {
+  font-size: 11px;
+  color: var(--ink-2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.command {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.next {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.toggle {
+  display: flex;
+  justify-content: center;
+}
+
+.rowActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.footer {
+  padding: 8px 14px;
+  border-top: 1px solid var(--line);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dialogText {
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+@media (max-width: 980px) {
+  .rowsHead,
+  .row {
+    grid-template-columns:
+      minmax(150px, 1.5fr)
+      94px
+      minmax(150px, 1.3fr)
+      44px
+      34px;
+  }
+
+  .rowsHead span:nth-child(4),
+  .next {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .rowsHead {
+    display: none;
+  }
+
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'name actions actions'
+      'schedule toggle toggle';
+    gap: 8px 10px;
+    padding: 12px 14px;
+  }
+
+  .nameCell {
+    grid-area: name;
+  }
+
+  .schedule {
+    grid-area: schedule;
+    font-size: 10.5px;
+    color: var(--ink-3);
+  }
+
+  .toggle {
+    grid-area: toggle;
+    justify-content: flex-end;
+  }
+
+  .rowActions {
+    grid-area: actions;
+  }
+
+  .row > div:nth-child(2) {
+    display: none;
+  }
+}

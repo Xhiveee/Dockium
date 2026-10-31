@@ -1,0 +1,269 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.agentSelect {
+  width: 186px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.panel {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.rowsHead,
+.row {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.6fr) 112px 88px 128px 38px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 10px 0 14px;
+}
+
+.rowsHead {
+  height: 34px;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.row {
+  min-height: 48px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.row + .row {
+  border-top: 1px solid var(--line);
+}
+
+.row:hover {
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.repoCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.repoIcon {
+  color: var(--ink-3);
+  flex: none;
+}
+
+.repo {
+  font-size: var(--text-xs);
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monoCell {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.idCell {
+  color: var(--ink-3);
+}
+
+.dateCell {
+  font-size: 10.5px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.rowActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.containerHead,
+.containerRow {
+  grid-template-columns: minmax(200px, 1.4fr) minmax(150px, 1.2fr) 150px 86px 38px;
+}
+
+.containerStatus {
+  display: block;
+  margin-top: 2px;
+  font-size: 9.5px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.instanceCell {
+  min-width: 0;
+}
+
+.instanceLink {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-strong);
+}
+
+.instanceLink:hover {
+  color: var(--ink);
+}
+
+.dim {
+  color: var(--ink-3);
+}
+
+.stateWrap {
+  padding: 14px;
+}
+
+.emptyPanel {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.dialogText {
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.streamForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.buildLog {
+  max-height: 280px;
+  min-height: 120px;
+  overflow: auto;
+  padding: 10px 12px;
+  background: var(--console-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.65;
+  color: var(--console-text);
+}
+
+.logLine {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.cursor {
+  display: inline-block;
+  width: 6px;
+  height: 11px;
+  background: var(--accent);
+  animation: dockium-pulse 1.2s steps(2, start) infinite;
+}
+
+.streamHint {
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+.inspectLoading {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.inspectJson {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1060px) {
+  .rowsHead,
+  .row {
+    grid-template-columns: minmax(220px, 1.6fr) 100px 84px 38px;
+  }
+
+  .rowsHead span:nth-child(4),
+  .dateCell {
+    display: none;
+  }
+
+  .containerHead,
+  .containerRow {
+    grid-template-columns: minmax(190px, 1.4fr) minmax(140px, 1.2fr) 140px 38px;
+  }
+
+  .containerHead span:nth-child(4),
+  .instanceCell {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .rowsHead,
+  .containerHead {
+    display: none;
+  }
+
+  .row,
+  .containerRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 11px 14px;
+  }
+
+  .repoCell {
+    flex: 1 1 100%;
+  }
+
+  .idCell {
+    display: none;
+  }
+
+  .rowActions {
+    margin-left: auto;
+  }
+
+  .containerStatus {
+    display: none;
+  }
+
+  .agentSelect {
+    width: 160px;
+  }
+}
+
+@media (max-width: 560px) {
+  .agentSelect {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
