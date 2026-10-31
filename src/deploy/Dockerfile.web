@@ -1,0 +1,32 @@
+# syntax=docker/dockerfile:1
+
+FROM node:24-alpine AS frontend
+WORKDIR /src/web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY web/ ./
+RUN npm run build
+
+FROM golang:1.27-alpine AS backend
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/dockium-web ./cmd/dockium-web
+
+FROM alpine:3.21
+RUN apk add --no-cache ca-certificates tzdata \
+    && addgroup -S -g 10001 dockium \
+    && adduser -S -u 10001 -G dockium dockium \
+    && mkdir -p /data \
+    && chown -R dockium:dockium /data
+WORKDIR /app
+COPY --from=backend /out/dockium-web /usr/local/bin/dockium-web
+COPY --from=frontend /src/web/dist /app/web-dist
+ENV DOCKIUM_DATA_DIR=/data DOCKIUM_WEB_DIR=/app/web-dist
+USER dockium
+EXPOSE 3434 3443
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
+  CMD wget -qO- http://127.0.0.1:3434/healthz || exit 1
+ENTRYPOINT ["dockium-web"]
+CMD ["-addr=:3434", "-agent-addr=:3443", "-data-dir=/data", "-web-dir=/app/web-dist"]
