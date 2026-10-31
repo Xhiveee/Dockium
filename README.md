@@ -65,7 +65,7 @@ cd src
 go run ./cmd/dockium-web \
   -addr 127.0.0.1:3434 \
   -agent-addr 127.0.0.1:3443 \
-  -data-dir ../.dockium-data \
+  -data-dir ./data \
   -web-dir ./web/dist
 ```
 
@@ -86,7 +86,7 @@ cd src
 go run ./cmd/dockium-agent \
   -panel http://127.0.0.1:3443 \
   -token '<TOKEN>' \
-  -data-dir ../.dockium-agent-data
+  -data-dir ./data/agent
 ```
 
 Для TLS-подключения агента используйте `https://` в `-panel` и при
