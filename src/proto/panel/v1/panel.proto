@@ -1,0 +1,750 @@
+syntax = "proto3";
+
+package dockium.panel.v1;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "dockium/gen/panel/v1;panelv1";
+
+message Page {
+  uint32 limit = 1;
+  uint32 offset = 2;
+}
+
+message Credentials {
+  string login = 1;
+  string password = 2;
+}
+
+message User {
+  int64 id = 1;
+  string login = 2;
+  string role = 3;
+  int64 created_at = 4;
+  int64 last_login_at = 5;
+  bool online = 6;
+}
+
+message SetupStatus {
+  bool initialized = 1;
+  string version = 2;
+  string panel_url = 3;
+}
+
+message MeResponse {
+  User user = 1;
+  bool security_access = 2;
+  bool agents_access = 3;
+}
+
+message ChangePasswordRequest {
+  string current_password = 1;
+  string new_password = 2;
+}
+
+message UpdateProfileRequest {
+  string login = 1;
+}
+
+message CreateAdminRequest {
+  Credentials credentials = 1;
+}
+
+service SetupService {
+  rpc GetStatus(google.protobuf.Empty) returns (SetupStatus);
+  rpc CreateAdmin(CreateAdminRequest) returns (User);
+}
+
+message LoginResponse {
+  User user = 1;
+}
+
+service AuthService {
+  rpc Login(Credentials) returns (LoginResponse);
+  rpc Logout(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc Me(google.protobuf.Empty) returns (MeResponse);
+  rpc ChangePassword(ChangePasswordRequest) returns (google.protobuf.Empty);
+  rpc UpdateProfile(UpdateProfileRequest) returns (User);
+}
+
+message UserList {
+  repeated User items = 1;
+  uint32 total = 2;
+}
+
+message CreateUserRequest {
+  string login = 1;
+  string password = 2;
+  string role = 3;
+}
+
+message UpdateUserRequest {
+  int64 id = 1;
+  string role = 2;
+  string password = 3;
+}
+
+message UserIdRequest {
+  int64 id = 1;
+}
+
+message InstanceAccess {
+  int64 instance_id = 1;
+  bool control = 2;
+  bool console = 3;
+  bool files = 4;
+}
+
+message UserAccess {
+  repeated InstanceAccess items = 1;
+}
+
+message SetAccessRequest {
+  int64 user_id = 1;
+  repeated InstanceAccess items = 2;
+}
+
+service UserService {
+  rpc List(Page) returns (UserList);
+  rpc Create(CreateUserRequest) returns (User);
+  rpc Update(UpdateUserRequest) returns (User);
+  rpc Delete(UserIdRequest) returns (google.protobuf.Empty);
+  rpc ListAccess(UserIdRequest) returns (UserAccess);
+  rpc SetAccess(SetAccessRequest) returns (UserAccess);
+}
+
+message Agent {
+  int64 id = 1;
+  string name = 2;
+  string country = 3;
+  bool online = 4;
+  string version = 5;
+  string hostname = 6;
+  string platform = 7;
+  string arch = 8;
+  string docker_version = 9;
+  bool docker_ok = 10;
+  string docker_error = 11;
+  string cpu_model = 12;
+  uint32 cpu_cores = 13;
+  double cpu_percent = 14;
+  uint64 memory_used_bytes = 15;
+  uint64 memory_total_bytes = 16;
+  uint64 disk_used_bytes = 17;
+  uint64 disk_total_bytes = 18;
+  uint64 network_in_bps = 19;
+  uint64 network_out_bps = 20;
+  uint32 instances_total = 21;
+  uint32 instances_running = 22;
+  uint32 latency_ms = 23;
+  int64 last_seen_at = 24;
+  int64 connected_at = 25;
+  int64 created_at = 26;
+}
+
+message AgentList {
+  repeated Agent items = 1;
+}
+
+message AgentRemoved {
+  int64 id = 1;
+}
+
+message AgentSnapshot {
+  repeated Agent items = 1;
+}
+
+message AgentEvent {
+  oneof payload {
+    AgentSnapshot snapshot = 1;
+    Agent agent = 2;
+    AgentRemoved removed = 3;
+  }
+}
+
+message CreateAgentRequest {
+  string name = 1;
+  string country = 2;
+}
+
+message AgentCreated {
+  Agent agent = 1;
+  string token = 2;
+  string endpoint = 3;
+}
+
+message AgentToken {
+  int64 id = 1;
+  string token = 2;
+}
+
+message UpdateAgentRequest {
+  int64 id = 1;
+  string name = 2;
+  string country = 3;
+}
+
+service AgentService {
+  rpc List(google.protobuf.Empty) returns (AgentList);
+  rpc Watch(google.protobuf.Empty) returns (stream AgentEvent);
+  rpc Create(CreateAgentRequest) returns (AgentCreated);
+  rpc Update(UpdateAgentRequest) returns (Agent);
+  rpc Delete(UserIdRequest) returns (google.protobuf.Empty);
+  rpc RotateToken(UserIdRequest) returns (AgentToken);
+}
+
+enum InstanceStatus {
+  INSTANCE_STATUS_UNSPECIFIED = 0;
+  INSTANCE_STATUS_STOPPED = 1;
+  INSTANCE_STATUS_STARTING = 2;
+  INSTANCE_STATUS_RUNNING = 3;
+  INSTANCE_STATUS_STOPPING = 4;
+  INSTANCE_STATUS_EXITED = 5;
+  INSTANCE_STATUS_FAILED = 6;
+}
+
+message EnvVar {
+  string key = 1;
+  string value = 2;
+}
+
+message PortMapping {
+  uint32 host_port = 1;
+  uint32 container_port = 2;
+  string protocol = 3;
+}
+
+message VolumeMount {
+  string host_path = 1;
+  string container_path = 2;
+  bool read_only = 3;
+}
+
+message InstanceUsage {
+  double cpu_percent = 1;
+  uint64 memory_bytes = 2;
+  uint64 memory_limit_bytes = 3;
+  uint64 network_in_bps = 4;
+  uint64 network_out_bps = 5;
+}
+
+message InstancePermissions {
+  bool control = 1;
+  bool console = 2;
+  bool files = 3;
+}
+
+message Instance {
+  int64 id = 1;
+  string name = 2;
+  int64 agent_id = 3;
+  string agent_name = 4;
+  bool agent_online = 5;
+  InstanceStatus status = 6;
+  string image = 7;
+  string container_name = 8;
+  string container_id = 9;
+  repeated string command = 10;
+  repeated EnvVar environment = 11;
+  repeated PortMapping ports = 12;
+  repeated VolumeMount volumes = 13;
+  string network_mode = 14;
+  string restart_policy = 15;
+  uint32 memory_mb = 16;
+  double cpus = 17;
+  bool tty = 18;
+  string data_mount = 19;
+  string console_encoding = 20;
+  bool auto_start = 21;
+  bool auto_restart = 22;
+  string last_error = 23;
+  int32 exit_code = 24;
+  int64 last_started_at = 25;
+  int64 created_at = 26;
+  int64 updated_at = 27;
+  InstanceUsage usage = 28;
+  InstancePermissions permissions = 29;
+}
+
+message InstanceList {
+  repeated Instance items = 1;
+}
+
+message InstanceSnapshot {
+  repeated Instance items = 1;
+}
+
+message InstanceRemoved {
+  int64 id = 1;
+}
+
+message InstanceEvent {
+  oneof payload {
+    InstanceSnapshot snapshot = 1;
+    Instance instance = 2;
+    InstanceRemoved removed = 3;
+  }
+}
+
+message InstanceIdRequest {
+  int64 id = 1;
+}
+
+message DeleteInstanceRequest {
+  int64 id = 1;
+  bool remove_data = 2;
+}
+
+message CreateInstanceRequest {
+  string name = 1;
+  int64 agent_id = 2;
+  string image = 3;
+  string container_name = 4;
+  repeated string command = 5;
+  repeated EnvVar environment = 6;
+  repeated PortMapping ports = 7;
+  repeated VolumeMount volumes = 8;
+  string network_mode = 9;
+  string restart_policy = 10;
+  uint32 memory_mb = 11;
+  double cpus = 12;
+  bool tty = 13;
+  string data_mount = 14;
+  string console_encoding = 15;
+  bool auto_start = 16;
+  bool auto_restart = 17;
+}
+
+message UpdateInstanceRequest {
+  int64 id = 1;
+  string name = 2;
+  string image = 3;
+  string container_name = 4;
+  repeated string command = 5;
+  repeated EnvVar environment = 6;
+  repeated PortMapping ports = 7;
+  repeated VolumeMount volumes = 8;
+  string network_mode = 9;
+  string restart_policy = 10;
+  uint32 memory_mb = 11;
+  double cpus = 12;
+  bool tty = 13;
+  string data_mount = 14;
+  string console_encoding = 15;
+  bool auto_start = 16;
+  bool auto_restart = 17;
+}
+
+message SetAutomationRequest {
+  int64 id = 1;
+  bool auto_start = 2;
+  bool auto_restart = 3;
+}
+
+service InstanceService {
+  rpc List(google.protobuf.Empty) returns (InstanceList);
+  rpc Get(InstanceIdRequest) returns (Instance);
+  rpc Watch(google.protobuf.Empty) returns (stream InstanceEvent);
+  rpc Create(CreateInstanceRequest) returns (Instance);
+  rpc Update(UpdateInstanceRequest) returns (Instance);
+  rpc Delete(DeleteInstanceRequest) returns (google.protobuf.Empty);
+  rpc Start(InstanceIdRequest) returns (Instance);
+  rpc Stop(InstanceIdRequest) returns (Instance);
+  rpc Restart(InstanceIdRequest) returns (Instance);
+  rpc Kill(InstanceIdRequest) returns (Instance);
+  rpc SetAutomation(SetAutomationRequest) returns (Instance);
+}
+
+enum ConsoleLineKind {
+  CONSOLE_LINE_KIND_UNSPECIFIED = 0;
+  CONSOLE_LINE_KIND_STDOUT = 1;
+  CONSOLE_LINE_KIND_STDERR = 2;
+  CONSOLE_LINE_KIND_SYSTEM = 3;
+}
+
+message ConsoleLine {
+  int64 seq = 1;
+  ConsoleLineKind kind = 2;
+  string text = 3;
+  int64 timestamp = 4;
+}
+
+message AttachConsoleRequest {
+  int64 instance_id = 1;
+  uint32 tail_lines = 2;
+}
+
+message SendConsoleCommandRequest {
+  int64 instance_id = 1;
+  string command = 2;
+}
+
+service ConsoleService {
+  rpc Attach(AttachConsoleRequest) returns (stream ConsoleLine);
+  rpc Send(SendConsoleCommandRequest) returns (google.protobuf.Empty);
+}
+
+message FileEntry {
+  string name = 1;
+  string path = 2;
+  bool is_dir = 3;
+  uint64 size = 4;
+  int64 modified_at = 5;
+  uint32 mode = 6;
+}
+
+message ListFilesRequest {
+  int64 instance_id = 1;
+  string path = 2;
+}
+
+message ListFilesResponse {
+  repeated FileEntry items = 1;
+  string path = 2;
+}
+
+message ReadFileRequest {
+  int64 instance_id = 1;
+  string path = 2;
+}
+
+message ReadFileResponse {
+  bytes content = 1;
+  uint64 size = 2;
+  int64 modified_at = 3;
+  string encoding = 4;
+  bool binary = 5;
+}
+
+message WriteFileRequest {
+  int64 instance_id = 1;
+  string path = 2;
+  bytes content = 3;
+  bool create = 4;
+}
+
+message CreateDirectoryRequest {
+  int64 instance_id = 1;
+  string path = 2;
+}
+
+message DeleteFileRequest {
+  int64 instance_id = 1;
+  string path = 2;
+  bool recursive = 3;
+}
+
+message RenameFileRequest {
+  int64 instance_id = 1;
+  string old_path = 2;
+  string new_path = 3;
+}
+
+message UploadFileRequest {
+  int64 instance_id = 1;
+  string path = 2;
+  bytes content = 3;
+  bool overwrite = 4;
+}
+
+message DownloadFileRequest {
+  int64 instance_id = 1;
+  string path = 2;
+}
+
+message FileChunk {
+  bytes data = 1;
+}
+
+message ChmodFileRequest {
+  int64 instance_id = 1;
+  string path = 2;
+  uint32 mode = 3;
+}
+
+message CompressFileRequest {
+  int64 instance_id = 1;
+  string path = 2;
+  string target = 3;
+  bool overwrite = 4;
+}
+
+message CompressFileResponse {
+  string path = 1;
+}
+
+service FileService {
+  rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
+  rpc ReadFile(ReadFileRequest) returns (ReadFileResponse);
+  rpc WriteFile(WriteFileRequest) returns (google.protobuf.Empty);
+  rpc CreateDirectory(CreateDirectoryRequest) returns (google.protobuf.Empty);
+  rpc DeleteFile(DeleteFileRequest) returns (google.protobuf.Empty);
+  rpc RenameFile(RenameFileRequest) returns (google.protobuf.Empty);
+  rpc UploadFile(UploadFileRequest) returns (google.protobuf.Empty);
+  rpc DownloadFile(DownloadFileRequest) returns (stream FileChunk);
+  rpc ChmodFile(ChmodFileRequest) returns (google.protobuf.Empty);
+  rpc CompressFile(CompressFileRequest) returns (CompressFileResponse);
+}
+
+message DockerImage {
+  string id = 1;
+  string repository = 2;
+  string tag = 3;
+  uint64 size_bytes = 4;
+  int64 created_at = 5;
+}
+
+message DockerImageList {
+  repeated DockerImage items = 1;
+}
+
+message DockerContainer {
+  string id = 1;
+  string name = 2;
+  string image = 3;
+  string command = 4;
+  string status = 5;
+  string state = 6;
+  int64 created_at = 7;
+  bool managed = 8;
+  int64 instance_id = 9;
+}
+
+message DockerContainerList {
+  repeated DockerContainer items = 1;
+}
+
+message AgentIdRequest {
+  int64 agent_id = 1;
+}
+
+message PullImageRequest {
+  int64 agent_id = 1;
+  string image = 2;
+}
+
+message BuildImageRequest {
+  int64 agent_id = 1;
+  string tag = 2;
+  string dockerfile = 3;
+}
+
+message RemoveImageRequest {
+  int64 agent_id = 1;
+  string image = 2;
+}
+
+message InspectDockerRequest {
+  int64 agent_id = 1;
+  string kind = 2;
+  string id = 3;
+}
+
+message InspectDockerResponse {
+  string json = 1;
+}
+
+message BuildOutput {
+  string line = 1;
+  bool done = 2;
+  string error = 3;
+}
+
+service DockerService {
+  rpc ListImages(AgentIdRequest) returns (DockerImageList);
+  rpc ListContainers(AgentIdRequest) returns (DockerContainerList);
+  rpc Inspect(InspectDockerRequest) returns (InspectDockerResponse);
+  rpc RemoveImage(RemoveImageRequest) returns (google.protobuf.Empty);
+  rpc PullImage(PullImageRequest) returns (stream BuildOutput);
+  rpc BuildImage(BuildImageRequest) returns (stream BuildOutput);
+}
+
+enum ScheduleKind {
+  SCHEDULE_KIND_UNSPECIFIED = 0;
+  SCHEDULE_KIND_INTERVAL = 1;
+  SCHEDULE_KIND_DAILY = 2;
+}
+
+enum ScheduleAction {
+  SCHEDULE_ACTION_UNSPECIFIED = 0;
+  SCHEDULE_ACTION_START = 1;
+  SCHEDULE_ACTION_STOP = 2;
+  SCHEDULE_ACTION_RESTART = 3;
+  SCHEDULE_ACTION_COMMAND = 4;
+}
+
+message ScheduledTask {
+  int64 id = 1;
+  int64 instance_id = 2;
+  string instance_name = 3;
+  string name = 4;
+  ScheduleAction action = 5;
+  string payload = 6;
+  ScheduleKind kind = 7;
+  uint32 interval_minutes = 8;
+  string time_of_day = 9;
+  bool enabled = 10;
+  int64 last_run_at = 11;
+  int64 next_run_at = 12;
+  string last_error = 13;
+  int64 created_at = 14;
+}
+
+message ScheduledTaskList {
+  repeated ScheduledTask items = 1;
+}
+
+message ListScheduledTasksRequest {
+  int64 instance_id = 1;
+}
+
+message CreateScheduledTaskRequest {
+  int64 instance_id = 1;
+  string name = 2;
+  ScheduleAction action = 3;
+  string payload = 4;
+  ScheduleKind kind = 5;
+  uint32 interval_minutes = 6;
+  string time_of_day = 7;
+  bool enabled = 8;
+}
+
+message UpdateScheduledTaskRequest {
+  int64 id = 1;
+  string name = 2;
+  ScheduleAction action = 3;
+  string payload = 4;
+  ScheduleKind kind = 5;
+  uint32 interval_minutes = 6;
+  string time_of_day = 7;
+  bool enabled = 8;
+}
+
+service ScheduleService {
+  rpc List(ListScheduledTasksRequest) returns (ScheduledTaskList);
+  rpc Create(CreateScheduledTaskRequest) returns (ScheduledTask);
+  rpc Update(UpdateScheduledTaskRequest) returns (ScheduledTask);
+  rpc Delete(UserIdRequest) returns (google.protobuf.Empty);
+}
+
+message LoginLog {
+  int64 id = 1;
+  string login = 2;
+  bool success = 3;
+  string reason = 4;
+  string ip = 5;
+  string user_agent = 6;
+  string browser = 7;
+  string os = 8;
+  int64 created_at = 9;
+}
+
+message LoginLogList {
+  repeated LoginLog items = 1;
+  uint32 total = 2;
+}
+
+message Ban {
+  int64 id = 1;
+  string ip = 2;
+  string reason = 3;
+  string source = 4;
+  int64 banned_at = 5;
+  int64 expires_at = 6;
+}
+
+message BanList {
+  repeated Ban items = 1;
+  uint32 total = 2;
+}
+
+message CreateBanRequest {
+  string ip = 1;
+  uint32 hours = 2;
+  string reason = 3;
+}
+
+message ApiRequest {
+  int64 id = 1;
+  string login = 2;
+  string procedure = 3;
+  uint32 status = 4;
+  string ip = 5;
+  int64 created_at = 6;
+}
+
+message ApiRequestList {
+  repeated ApiRequest items = 1;
+  uint32 total = 2;
+}
+
+message SessionInfo {
+  string id = 1;
+  int64 user_id = 2;
+  string login = 3;
+  string ip = 4;
+  string user_agent = 5;
+  int64 created_at = 6;
+  int64 last_seen_at = 7;
+  int64 expires_at = 8;
+  bool current = 9;
+}
+
+message SessionList {
+  repeated SessionInfo items = 1;
+}
+
+message RevokeSessionRequest {
+  string id = 1;
+}
+
+message BanRemoved {
+  int64 id = 1;
+}
+
+message SecurityEvent {
+  oneof payload {
+    LoginLog login_log = 1;
+    ApiRequest api_request = 2;
+    Ban ban = 3;
+    BanRemoved ban_removed = 4;
+    SessionInfo session_revoked = 5;
+  }
+}
+
+service SecurityService {
+  rpc ListLoginLogs(Page) returns (LoginLogList);
+  rpc ListBans(Page) returns (BanList);
+  rpc CreateBan(CreateBanRequest) returns (Ban);
+  rpc DeleteBan(UserIdRequest) returns (google.protobuf.Empty);
+  rpc ListApiRequests(Page) returns (ApiRequestList);
+  rpc ListSessions(google.protobuf.Empty) returns (SessionList);
+  rpc RevokeSession(RevokeSessionRequest) returns (google.protobuf.Empty);
+}
+
+service SecurityEventsService {
+  rpc Watch(google.protobuf.Empty) returns (stream SecurityEvent);
+}
+
+message DashboardOverview {
+  uint32 agents_total = 1;
+  uint32 agents_online = 2;
+  uint32 instances_total = 3;
+  uint32 instances_running = 4;
+  uint32 instances_attention = 5;
+  uint32 users_total = 6;
+  double cpu_percent = 7;
+  uint64 memory_used_bytes = 8;
+  uint64 memory_total_bytes = 9;
+  uint64 disk_used_bytes = 10;
+  uint64 disk_total_bytes = 11;
+  repeated Instance instances = 12;
+  repeated Agent agents = 13;
+  repeated ScheduledTask upcoming_tasks = 14;
+  repeated LoginLog recent_logins = 15;
+  int64 generated_at = 16;
+}
+
+service DashboardService {
+  rpc GetOverview(google.protobuf.Empty) returns (DashboardOverview);
+}

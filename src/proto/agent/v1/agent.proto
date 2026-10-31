@@ -1,0 +1,395 @@
+syntax = "proto3";
+
+package dockium.agent.v1;
+
+option go_package = "dockium/gen/agent/v1;agentv1";
+
+message Hello {
+  string token = 1;
+  string version = 2;
+  string hostname = 3;
+  string platform = 4;
+  string arch = 5;
+  string docker_version = 6;
+  string cpu_model = 7;
+  uint32 cpu_cores = 8;
+  int64 started_at = 9;
+}
+
+message HostStats {
+  double cpu_percent = 1;
+  uint64 memory_used_bytes = 2;
+  uint64 memory_total_bytes = 3;
+  uint64 disk_used_bytes = 4;
+  uint64 disk_total_bytes = 5;
+  uint64 network_in_bps = 6;
+  uint64 network_out_bps = 7;
+}
+
+enum InstanceStatus {
+  INSTANCE_STATUS_UNSPECIFIED = 0;
+  INSTANCE_STATUS_STOPPED = 1;
+  INSTANCE_STATUS_STARTING = 2;
+  INSTANCE_STATUS_RUNNING = 3;
+  INSTANCE_STATUS_STOPPING = 4;
+  INSTANCE_STATUS_EXITED = 5;
+  INSTANCE_STATUS_FAILED = 6;
+}
+
+message EnvVar {
+  string key = 1;
+  string value = 2;
+}
+
+message PortMapping {
+  uint32 host_port = 1;
+  uint32 container_port = 2;
+  string protocol = 3;
+}
+
+message VolumeMount {
+  string host_path = 1;
+  string container_path = 2;
+  bool read_only = 3;
+}
+
+message InstanceSpec {
+  int64 id = 1;
+  string name = 2;
+  string image = 3;
+  string container_name = 4;
+  repeated string command = 5;
+  repeated EnvVar environment = 6;
+  repeated PortMapping ports = 7;
+  repeated VolumeMount volumes = 8;
+  string network_mode = 9;
+  string restart_policy = 10;
+  uint32 memory_mb = 11;
+  double cpus = 12;
+  bool tty = 13;
+  string data_mount = 14;
+  string console_encoding = 15;
+  bool auto_start = 16;
+  bool auto_restart = 17;
+}
+
+message InstanceState {
+  int64 id = 1;
+  InstanceStatus status = 2;
+  int32 exit_code = 3;
+  string error = 4;
+  int64 started_at = 5;
+  int64 finished_at = 6;
+  string container_id = 7;
+  double cpu_percent = 8;
+  uint64 memory_bytes = 9;
+  uint64 memory_limit_bytes = 10;
+  uint64 network_in_bps = 11;
+  uint64 network_out_bps = 12;
+}
+
+message Heartbeat {
+  HostStats host = 1;
+  repeated InstanceState instances = 2;
+  bool docker_ok = 3;
+  string docker_error = 4;
+  uint32 images_total = 5;
+  uint32 containers_total = 6;
+  int64 sent_at = 7;
+  int64 uptime_seconds = 8;
+}
+
+message SyncInstances {
+  repeated InstanceSpec specs = 1;
+}
+
+message EnsureInstance {
+  InstanceSpec spec = 1;
+}
+
+message InstanceTarget {
+  int64 id = 1;
+}
+
+message StopInstance {
+  int64 id = 1;
+  uint32 timeout_seconds = 2;
+  bool force = 3;
+}
+
+message RemoveInstance {
+  int64 id = 1;
+  bool remove_data = 2;
+}
+
+message ListImages {}
+
+message PullImage {
+  string image = 1;
+  string stream_id = 2;
+}
+
+message BuildImage {
+  string tag = 1;
+  string dockerfile = 2;
+  string stream_id = 3;
+}
+
+message RemoveImage {
+  string image = 1;
+}
+
+message ListContainers {}
+
+message InspectObject {
+  string kind = 1;
+  string id = 2;
+}
+
+message ListFiles {
+  int64 instance_id = 1;
+  string path = 2;
+}
+
+message ReadFile {
+  int64 instance_id = 1;
+  string path = 2;
+}
+
+message WriteFile {
+  int64 instance_id = 1;
+  string path = 2;
+  bytes content = 3;
+  bool create = 4;
+}
+
+message CreateDirectory {
+  int64 instance_id = 1;
+  string path = 2;
+}
+
+message DeletePath {
+  int64 instance_id = 1;
+  string path = 2;
+  bool recursive = 3;
+}
+
+message RenamePath {
+  int64 instance_id = 1;
+  string old_path = 2;
+  string new_path = 3;
+}
+
+message UploadFile {
+  int64 instance_id = 1;
+  string path = 2;
+  bytes content = 3;
+  bool overwrite = 4;
+}
+
+message DownloadFile {
+  int64 instance_id = 1;
+  string path = 2;
+  string stream_id = 3;
+}
+
+message ChmodPath {
+  int64 instance_id = 1;
+  string path = 2;
+  uint32 mode = 3;
+}
+
+message CompressPath {
+  int64 instance_id = 1;
+  string path = 2;
+  string target = 3;
+  bool overwrite = 4;
+}
+
+message ConsoleAttach {
+  string stream_id = 1;
+  int64 instance_id = 2;
+  uint32 tail_lines = 3;
+}
+
+message ConsoleDetach {
+  string stream_id = 1;
+}
+
+message ConsoleInput {
+  int64 instance_id = 1;
+  string text = 2;
+}
+
+message Ping {
+  int64 nonce = 1;
+}
+
+message Command {
+  int64 id = 1;
+  oneof payload {
+    SyncInstances sync = 2;
+    EnsureInstance ensure = 3;
+    InstanceTarget start = 4;
+    StopInstance stop = 5;
+    InstanceTarget restart = 6;
+    RemoveInstance remove = 7;
+    ListImages list_images = 8;
+    PullImage pull_image = 9;
+    BuildImage build_image = 10;
+    RemoveImage remove_image = 11;
+    ListContainers list_containers = 12;
+    InspectObject inspect = 13;
+    ListFiles list_files = 14;
+    ReadFile read_file = 15;
+    WriteFile write_file = 16;
+    CreateDirectory mkdir = 17;
+    DeletePath delete_path = 18;
+    RenamePath rename_path = 19;
+    UploadFile upload_file = 20;
+    DownloadFile download_file = 21;
+    ChmodPath chmod = 22;
+    CompressPath compress = 23;
+    ConsoleAttach console_attach = 24;
+    ConsoleDetach console_detach = 25;
+    ConsoleInput console_input = 26;
+    Ping ping = 27;
+  }
+}
+
+message Image {
+  string id = 1;
+  string repository = 2;
+  string tag = 3;
+  uint64 size_bytes = 4;
+  int64 created_at = 5;
+}
+
+message ImageList {
+  repeated Image items = 1;
+}
+
+message Container {
+  string id = 1;
+  string name = 2;
+  string image = 3;
+  string command = 4;
+  string status = 5;
+  string state = 6;
+  int64 created_at = 7;
+  bool managed = 8;
+  int64 instance_id = 9;
+}
+
+message ContainerList {
+  repeated Container items = 1;
+}
+
+message InspectResponse {
+  string json = 1;
+}
+
+message FileEntry {
+  string name = 1;
+  string path = 2;
+  bool is_dir = 3;
+  uint64 size = 4;
+  int64 modified_at = 5;
+  uint32 mode = 6;
+}
+
+message FileList {
+  repeated FileEntry items = 1;
+  string path = 2;
+}
+
+message FileContent {
+  bytes content = 1;
+  uint64 size = 2;
+  int64 modified_at = 3;
+  bool binary = 4;
+}
+
+message PathInfo {
+  string path = 1;
+}
+
+message Empty {}
+
+message CommandResult {
+  int64 id = 1;
+  string error = 2;
+  oneof payload {
+    Empty empty = 3;
+    InstanceState instance = 4;
+    ImageList images = 5;
+    ContainerList containers = 6;
+    InspectResponse inspect = 7;
+    FileList files = 8;
+    FileContent file = 9;
+    PathInfo path = 10;
+  }
+}
+
+message ConsoleLine {
+  int64 seq = 1;
+  int32 kind = 2;
+  string text = 3;
+  int64 timestamp = 4;
+}
+
+message ConsoleData {
+  string stream_id = 1;
+  repeated ConsoleLine lines = 2;
+  bool done = 3;
+  string error = 4;
+}
+
+message StreamEvent {
+  string stream_id = 1;
+  string line = 2;
+  bool done = 3;
+  string error = 4;
+}
+
+message FileChunk {
+  string stream_id = 1;
+  bytes data = 2;
+  bool eof = 3;
+  string error = 4;
+}
+
+message Pong {
+  int64 nonce = 1;
+}
+
+message AgentMessage {
+  oneof payload {
+    Hello hello = 1;
+    Heartbeat heartbeat = 2;
+    CommandResult result = 3;
+    ConsoleData console = 4;
+    StreamEvent stream = 5;
+    FileChunk file_chunk = 6;
+    Pong pong = 7;
+  }
+}
+
+message Welcome {
+  int64 agent_id = 1;
+  string agent_name = 2;
+  int64 server_time = 3;
+  uint32 heartbeat_seconds = 4;
+}
+
+message ServerMessage {
+  oneof payload {
+    Welcome welcome = 1;
+    Command command = 2;
+    Ping ping = 3;
+  }
+}
+
+service AgentService {
+  rpc Connect(stream AgentMessage) returns (stream ServerMessage);
+}
