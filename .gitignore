@@ -1,0 +1,16 @@
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.agents/
+.claude/
+.cursor/rules/dockium.mdc
+.github/copilot-instructions.md
+skills-lock.json
+
+.env
+*.log
+src/data/
+src/bin/
+src/web/node_modules/
+src/web/dist/
+src/web/.vite/
