@@ -200,9 +200,13 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       } else if (payload.case === 'ban') {
         queryClient.setQueryData<BanList>(keys.bans, (current) => {
           if (!current) return current
-          const items = current.items.filter((item) => item.ip !== payload.value.ip)
-          items.unshift(payload.value)
-          return { ...current, total: items.length, items }
+          const index = current.items.findIndex((item) => item.id === payload.value.id)
+          if (index >= 0) {
+            const items = current.items.slice()
+            items[index] = payload.value
+            return { ...current, items }
+          }
+          return { ...current, total: current.total + 1, items: [payload.value, ...current.items] }
         })
       } else if (payload.case === 'banRemoved') {
         queryClient.setQueryData<BanList>(keys.bans, (current) => {

@@ -238,6 +238,7 @@ func Ban(ban *db.Ban) *panelv1.Ban {
 		Ip:        ban.IP,
 		Reason:    ban.Reason,
 		Source:    ban.Source,
+		Country:   ban.Country,
 		BannedAt:  ban.BannedAt,
 		ExpiresAt: ban.ExpiresAt,
 	}

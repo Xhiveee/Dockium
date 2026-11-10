@@ -461,6 +461,23 @@ func (s *Server) resolveLoginCountry(entry *db.LoginLog) {
 	s.publisher.LoginLogged(entry)
 }
 
+func (s *Server) resolveBanCountry(ban *db.Ban) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	country := geoip.CountryForIP(ctx, ban.IP)
+	if country == "" {
+		return
+	}
+	saveCtx, saveCancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer saveCancel()
+	if err := s.store.UpdateBanCountry(saveCtx, ban.ID, country); err != nil {
+		s.log.Warn("update ban country", "error", err)
+		return
+	}
+	ban.Country = country
+	s.publisher.BanChanged(ban)
+}
+
 func (s *Server) requireUser(ctx context.Context) (*principal, error) {
 	state, ok := principalFrom(ctx)
 	if !ok || state.user == nil {

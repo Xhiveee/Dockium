@@ -138,7 +138,7 @@
 .headBans,
 .banRow {
   display: grid;
-  grid-template-columns: 150px minmax(180px, 1.6fr) 100px 130px 40px;
+  grid-template-columns: 150px 105px minmax(160px, 1.6fr) 100px 130px 40px;
   align-items: center;
   gap: 12px;
   padding: 0 14px;
@@ -272,10 +272,10 @@
 @media (max-width: 1000px) {
   .headBans,
   .banRow {
-    grid-template-columns: 140px minmax(160px, 1.6fr) 90px 40px;
+    grid-template-columns: 140px 100px minmax(140px, 1.6fr) 90px 40px;
   }
 
-  .headBans span:nth-child(4),
+  .headBans span:nth-child(5),
   .banRow > .time {
     display: none;
   }

@@ -5475,6 +5475,7 @@ type Ban struct {
 	Source        string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
 	BannedAt      int64                  `protobuf:"varint,5,opt,name=banned_at,json=bannedAt,proto3" json:"banned_at,omitempty"`
 	ExpiresAt     int64                  `protobuf:"varint,6,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	Country       string                 `protobuf:"bytes,7,opt,name=country,proto3" json:"country,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5549,6 +5550,13 @@ func (x *Ban) GetExpiresAt() int64 {
 		return x.ExpiresAt
 	}
 	return 0
+}
+
+func (x *Ban) GetCountry() string {
+	if x != nil {
+		return x.Country
+	}
+	return ""
 }
 
 type BanList struct {
@@ -6864,7 +6872,7 @@ const file_panel_v1_panel_proto_rawDesc = "" +
 	" \x01(\tR\acountry\"V\n" +
 	"\fLoginLogList\x120\n" +
 	"\x05items\x18\x01 \x03(\v2\x1a.dockium.panel.v1.LoginLogR\x05items\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\rR\x05total\"\x91\x01\n" +
+	"\x05total\x18\x02 \x01(\rR\x05total\"\xab\x01\n" +
 	"\x03Ban\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x0e\n" +
 	"\x02ip\x18\x02 \x01(\tR\x02ip\x12\x16\n" +
@@ -6872,7 +6880,8 @@ const file_panel_v1_panel_proto_rawDesc = "" +
 	"\x06source\x18\x04 \x01(\tR\x06source\x12\x1b\n" +
 	"\tbanned_at\x18\x05 \x01(\x03R\bbannedAt\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\x06 \x01(\x03R\texpiresAt\"L\n" +
+	"expires_at\x18\x06 \x01(\x03R\texpiresAt\x12\x18\n" +
+	"\acountry\x18\a \x01(\tR\acountry\"L\n" +
 	"\aBanList\x12+\n" +
 	"\x05items\x18\x01 \x03(\v2\x15.dockium.panel.v1.BanR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\rR\x05total\"P\n" +

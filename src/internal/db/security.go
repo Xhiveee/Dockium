@@ -64,9 +64,9 @@ func (d *DB) CountFailedLogins(ctx context.Context, ip string, since int64) (int
 
 func (d *DB) ActiveBan(ctx context.Context, ip string, now int64) (*Ban, error) {
 	row := d.sql.QueryRowContext(ctx,
-		`SELECT id, ip, reason, source, banned_at, expires_at FROM ip_bans WHERE ip = ? AND expires_at > ?`, ip, now)
+		`SELECT id, ip, reason, source, country, banned_at, expires_at FROM ip_bans WHERE ip = ? AND expires_at > ?`, ip, now)
 	var ban Ban
-	if err := row.Scan(&ban.ID, &ban.IP, &ban.Reason, &ban.Source, &ban.BannedAt, &ban.ExpiresAt); err != nil {
+	if err := row.Scan(&ban.ID, &ban.IP, &ban.Reason, &ban.Source, &ban.Country, &ban.BannedAt, &ban.ExpiresAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}
@@ -77,17 +77,17 @@ func (d *DB) ActiveBan(ctx context.Context, ip string, now int64) (*Ban, error) 
 
 func (d *DB) CreateBan(ctx context.Context, ban *Ban) (*Ban, error) {
 	_, err := d.sql.ExecContext(ctx,
-		`INSERT INTO ip_bans (ip, reason, source, banned_at, expires_at) VALUES (?, ?, ?, ?, ?)
+		`INSERT INTO ip_bans (ip, reason, source, country, banned_at, expires_at) VALUES (?, ?, ?, ?, ?, ?)
 		 ON CONFLICT(ip) DO UPDATE SET reason = excluded.reason, source = excluded.source,
-		 banned_at = excluded.banned_at, expires_at = excluded.expires_at`,
-		ban.IP, ban.Reason, ban.Source, ban.BannedAt, ban.ExpiresAt)
+		 country = excluded.country, banned_at = excluded.banned_at, expires_at = excluded.expires_at`,
+		ban.IP, ban.Reason, ban.Source, ban.Country, ban.BannedAt, ban.ExpiresAt)
 	if err != nil {
 		return nil, fmt.Errorf("create ban: %w", err)
 	}
 	var stored Ban
 	if err := d.sql.QueryRowContext(ctx,
-		`SELECT id, ip, reason, source, banned_at, expires_at FROM ip_bans WHERE ip = ?`, ban.IP).
-		Scan(&stored.ID, &stored.IP, &stored.Reason, &stored.Source, &stored.BannedAt, &stored.ExpiresAt); err != nil {
+		`SELECT id, ip, reason, source, country, banned_at, expires_at FROM ip_bans WHERE ip = ?`, ban.IP).
+		Scan(&stored.ID, &stored.IP, &stored.Reason, &stored.Source, &stored.Country, &stored.BannedAt, &stored.ExpiresAt); err != nil {
 		return nil, fmt.Errorf("read ban: %w", err)
 	}
 	return &stored, nil
@@ -95,7 +95,7 @@ func (d *DB) CreateBan(ctx context.Context, ban *Ban) (*Ban, error) {
 
 func (d *DB) ListBans(ctx context.Context, now int64) ([]*Ban, error) {
 	rows, err := d.sql.QueryContext(ctx,
-		`SELECT id, ip, reason, source, banned_at, expires_at FROM ip_bans WHERE expires_at > ? ORDER BY id DESC`, now)
+		`SELECT id, ip, reason, source, country, banned_at, expires_at FROM ip_bans WHERE expires_at > ? ORDER BY id DESC`, now)
 	if err != nil {
 		return nil, fmt.Errorf("list bans: %w", err)
 	}
@@ -103,7 +103,7 @@ func (d *DB) ListBans(ctx context.Context, now int64) ([]*Ban, error) {
 	items := make([]*Ban, 0)
 	for rows.Next() {
 		var item Ban
-		if err := rows.Scan(&item.ID, &item.IP, &item.Reason, &item.Source, &item.BannedAt, &item.ExpiresAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.IP, &item.Reason, &item.Source, &item.Country, &item.BannedAt, &item.ExpiresAt); err != nil {
 			return nil, fmt.Errorf("scan ban: %w", err)
 		}
 		items = append(items, &item)
@@ -117,6 +117,14 @@ func (d *DB) CountBans(ctx context.Context, now int64) (int, error) {
 		return 0, fmt.Errorf("count bans: %w", err)
 	}
 	return count, nil
+}
+
+func (d *DB) UpdateBanCountry(ctx context.Context, id int64, country string) error {
+	_, err := d.sql.ExecContext(ctx, `UPDATE ip_bans SET country = ? WHERE id = ?`, country, id)
+	if err != nil {
+		return fmt.Errorf("update ban country: %w", err)
+	}
+	return nil
 }
 
 func (d *DB) DeleteBan(ctx context.Context, id int64) error {

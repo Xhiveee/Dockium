@@ -11,6 +11,7 @@ import (
 
 	panelv1 "dockium/gen/panel/v1"
 	"dockium/internal/db"
+	"dockium/internal/geoip"
 	"dockium/internal/present"
 )
 
@@ -48,6 +49,10 @@ func (s *Server) ListBans(ctx context.Context, request *connect.Request[panelv1.
 	}
 	items := make([]*panelv1.Ban, 0, len(bans))
 	for _, ban := range bans {
+		if ban.Country == "" {
+			pending := *ban
+			go s.resolveBanCountry(&pending)
+		}
 		items = append(items, present.Ban(ban))
 	}
 	return connect.NewResponse(&panelv1.BanList{Items: items, Total: uint32(total)}), nil
@@ -72,10 +77,12 @@ func (s *Server) CreateBan(ctx context.Context, request *connect.Request[panelv1
 	if len(reason) > 256 {
 		return nil, invalid("слишком длинная причина")
 	}
+	country, resolved := geoip.Classify(ip)
 	ban, err := s.store.CreateBan(ctx, &db.Ban{
 		IP:        ip,
 		Reason:    reason,
 		Source:    "manual",
+		Country:   country,
 		BannedAt:  db.Now(),
 		ExpiresAt: db.Now() + int64(hours)*3600*1000,
 	})
@@ -83,6 +90,10 @@ func (s *Server) CreateBan(ctx context.Context, request *connect.Request[panelv1
 		return nil, rpcError(err, "не удалось добавить блокировку")
 	}
 	s.publisher.BanChanged(ban)
+	if !resolved {
+		pending := *ban
+		go s.resolveBanCountry(&pending)
+	}
 	return connect.NewResponse(present.Ban(ban)), nil
 }
 

@@ -13,6 +13,7 @@ import (
 	panelv1 "dockium/gen/panel/v1"
 	"dockium/internal/auth"
 	"dockium/internal/db"
+	"dockium/internal/geoip"
 )
 
 func (s *Server) GetStatus(ctx context.Context, _ *connect.Request[emptypb.Empty]) (*connect.Response[panelv1.SetupStatus], error) {
@@ -182,10 +183,12 @@ func (s *Server) loginFailure(ctx context.Context, username, ip, userAgent, reas
 	if _, err := s.store.ActiveBan(ctx, ip, db.Now()); err == nil {
 		return
 	}
+	country, resolved := geoip.Classify(ip)
 	ban, err := s.store.CreateBan(ctx, &db.Ban{
 		IP:        ip,
 		Reason:    "5 неудачных попыток входа за 10 минут",
 		Source:    "auto",
+		Country:   country,
 		BannedAt:  db.Now(),
 		ExpiresAt: db.Now() + 60*60*1000,
 	})
@@ -194,6 +197,10 @@ func (s *Server) loginFailure(ctx context.Context, username, ip, userAgent, reas
 		return
 	}
 	s.publisher.BanChanged(ban)
+	if !resolved {
+		pending := *ban
+		go s.resolveBanCountry(&pending)
+	}
 }
 
 func timeMilliLabel(millis int64) string {

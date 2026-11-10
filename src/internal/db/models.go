@@ -60,6 +60,7 @@ type Ban struct {
 	IP        string
 	Reason    string
 	Source    string
+	Country   string
 	BannedAt  int64
 	ExpiresAt int64
 }

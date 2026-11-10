@@ -117,7 +117,10 @@ export function SecurityPage() {
   )
 
   const filteredBans = useMemo(
-    () => (query ? bans.filter((ban) => `${ban.ip} ${ban.reason} ${ban.source}`.toLowerCase().includes(query)) : bans),
+    () =>
+      query
+        ? bans.filter((ban) => `${ban.ip} ${ban.country} ${ban.reason} ${ban.source}`.toLowerCase().includes(query))
+        : bans,
     [bans, query],
   )
 
@@ -297,13 +300,14 @@ export function SecurityPage() {
         <div className={styles.panel}>
           <div className={styles.headBans}>
             <span>IP</span>
+            <span>Страна</span>
             <span>Причина</span>
             <span>Источник</span>
             <span>Истекает</span>
             <span />
           </div>
           {bansQuery.isPending ? (
-            <SkeletonRows rows={3} columns={5} />
+            <SkeletonRows rows={3} columns={6} />
           ) : bansQuery.isError ? (
             <ErrorNotice message={errorMessage(bansQuery.error)} onRetry={() => void bansQuery.refetch()} />
           ) : filteredBans.length === 0 ? (
@@ -317,6 +321,7 @@ export function SecurityPage() {
             filteredBans.map((ban) => (
               <div className={cx(styles.row, styles.banRow)} key={ban.id.toString()}>
                 <span className={styles.mono}>{ban.ip}</span>
+                <span className={styles.secondaryText}>{ban.country || '—'}</span>
                 <span className={styles.reason}>{ban.reason || '—'}</span>
                 <div>
                   <Badge tone={ban.source === 'auto' ? 'warning' : 'neutral'}>

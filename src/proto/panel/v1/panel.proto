@@ -658,6 +658,7 @@ message Ban {
   string source = 4;
   int64 banned_at = 5;
   int64 expires_at = 6;
+  string country = 7;
 }
 
 message BanList {
