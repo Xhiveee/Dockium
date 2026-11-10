@@ -34,7 +34,7 @@
 .head,
 .row {
   display: grid;
-  grid-template-columns: 108px minmax(160px, 1.2fr) 150px minmax(120px, 1fr) 92px;
+  grid-template-columns: 96px minmax(110px, 1fr) 125px 105px 105px 85px minmax(110px, 1fr) 92px;
   align-items: center;
   gap: 12px;
   padding: 0 14px;
@@ -255,17 +255,21 @@
   color: var(--ink-2);
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .head,
   .row {
-    grid-template-columns: 100px minmax(150px, 1.2fr) 140px 92px;
+    grid-template-columns: 100px minmax(120px, 1.2fr) 125px 105px 105px 92px;
   }
 
-  .head span:nth-child(4),
-  .reason {
+  .head span:nth-child(6),
+  .head span:nth-child(7),
+  .row > .osCell,
+  .row > .reason {
     display: none;
   }
+}
 
+@media (max-width: 1000px) {
   .headBans,
   .banRow {
     grid-template-columns: 140px minmax(160px, 1.6fr) 90px 40px;

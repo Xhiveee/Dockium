@@ -643,6 +643,7 @@ message LoginLog {
   string browser = 7;
   string os = 8;
   int64 created_at = 9;
+  string country = 10;
 }
 
 message LoginLogList {

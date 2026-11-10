@@ -233,4 +233,5 @@ var migrations = []string{
 	)`,
 	`INSERT INTO panel_settings (id, max_upload_mb) VALUES (1, 1024)`,
 	`ALTER TABLE agents ADD COLUMN enabled INTEGER NOT NULL DEFAULT 1`,
+	`ALTER TABLE login_logs ADD COLUMN country TEXT NOT NULL DEFAULT ''`,
 }

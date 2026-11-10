@@ -111,7 +111,7 @@ export function SecurityPage() {
         if (loginFilter === 'failed' && entry.success) return false
         if (loginFilter === 'success' && !entry.success) return false
         if (!query) return true
-        return `${entry.login} ${entry.ip} ${entry.reason} ${entry.browser} ${entry.os}`.toLowerCase().includes(query)
+        return `${entry.login} ${entry.ip} ${entry.country} ${entry.reason} ${entry.browser} ${entry.os}`.toLowerCase().includes(query)
       }),
     [logins, loginFilter, query],
   )
@@ -253,13 +253,16 @@ export function SecurityPage() {
         <div className={styles.panel}>
           <div className={styles.head}>
             <span>Статус</span>
-            <span>Логин и IP</span>
-            <span>Устройство</span>
+            <span>Логин</span>
+            <span>IP</span>
+            <span>Страна</span>
+            <span>Браузер</span>
+            <span>ОС</span>
             <span>Причина</span>
             <span>Время</span>
           </div>
           {loginsQuery.isPending ? (
-            <SkeletonRows rows={6} columns={5} />
+            <SkeletonRows rows={6} columns={8} />
           ) : loginsQuery.isError ? (
             <ErrorNotice message={errorMessage(loginsQuery.error)} onRetry={() => void loginsQuery.refetch()} />
           ) : filteredLogins.length === 0 ? (
@@ -275,11 +278,11 @@ export function SecurityPage() {
                   )}
                   <span>{entry.success ? 'успешно' : 'отклонён'}</span>
                 </div>
-                <div className={styles.twoLine}>
-                  <span className={styles.primaryText}>{entry.login || '—'}</span>
-                  <span className={styles.mono}>{entry.ip || '—'}</span>
-                </div>
-                <span className={styles.secondaryText}>{browserLabel(entry.userAgent)}</span>
+                <span className={styles.primaryText}>{entry.login || '—'}</span>
+                <span className={styles.mono}>{entry.ip || '—'}</span>
+                <span className={styles.secondaryText}>{entry.country || '—'}</span>
+                <span className={styles.secondaryText}>{entry.browser || '—'}</span>
+                <span className={cx(styles.secondaryText, styles.osCell)}>{entry.os || '—'}</span>
                 <span className={styles.reason}>{entry.reason || '—'}</span>
                 <span className={styles.time} title={formatDate(entry.createdAt)}>
                   {formatRelative(entry.createdAt)}

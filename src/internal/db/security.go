@@ -9,9 +9,9 @@ import (
 
 func (d *DB) InsertLoginLog(ctx context.Context, entry *LoginLog) (int64, error) {
 	result, err := d.sql.ExecContext(ctx,
-		`INSERT INTO login_logs (login, success, reason, ip, user_agent, browser, os, created_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		entry.Login, entry.Success, entry.Reason, entry.IP, entry.UserAgent, entry.Browser, entry.OS, entry.CreatedAt)
+		`INSERT INTO login_logs (login, success, reason, ip, user_agent, browser, os, country, created_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		entry.Login, entry.Success, entry.Reason, entry.IP, entry.UserAgent, entry.Browser, entry.OS, entry.Country, entry.CreatedAt)
 	if err != nil {
 		return 0, fmt.Errorf("insert login log: %w", err)
 	}
@@ -20,7 +20,7 @@ func (d *DB) InsertLoginLog(ctx context.Context, entry *LoginLog) (int64, error)
 
 func (d *DB) ListLoginLogs(ctx context.Context, limit, offset int) ([]*LoginLog, error) {
 	rows, err := d.sql.QueryContext(ctx,
-		`SELECT id, login, success, reason, ip, user_agent, browser, os, created_at
+		`SELECT id, login, success, reason, ip, user_agent, browser, os, country, created_at
 		 FROM login_logs ORDER BY id DESC LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("list login logs: %w", err)
@@ -29,12 +29,20 @@ func (d *DB) ListLoginLogs(ctx context.Context, limit, offset int) ([]*LoginLog,
 	items := make([]*LoginLog, 0, limit)
 	for rows.Next() {
 		var item LoginLog
-		if err := rows.Scan(&item.ID, &item.Login, &item.Success, &item.Reason, &item.IP, &item.UserAgent, &item.Browser, &item.OS, &item.CreatedAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.Login, &item.Success, &item.Reason, &item.IP, &item.UserAgent, &item.Browser, &item.OS, &item.Country, &item.CreatedAt); err != nil {
 			return nil, fmt.Errorf("scan login log: %w", err)
 		}
 		items = append(items, &item)
 	}
 	return items, rows.Err()
+}
+
+func (d *DB) UpdateLoginLogCountry(ctx context.Context, id int64, country string) error {
+	_, err := d.sql.ExecContext(ctx, `UPDATE login_logs SET country = ? WHERE id = ?`, country, id)
+	if err != nil {
+		return fmt.Errorf("update login log country: %w", err)
+	}
+	return nil
 }
 
 func (d *DB) CountLoginLogs(ctx context.Context) (int, error) {

@@ -224,6 +224,7 @@ func LoginLog(entry *db.LoginLog) *panelv1.LoginLog {
 		UserAgent: entry.UserAgent,
 		Browser:   entry.Browser,
 		Os:        entry.OS,
+		Country:   entry.Country,
 		CreatedAt: entry.CreatedAt,
 	}
 }

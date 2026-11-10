@@ -183,7 +183,12 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       if (payload.case === 'loginLog') {
         queryClient.setQueryData<LoginLogList>(keys.logins, (current) => {
           if (!current) return current
-          if (current.items.some((item) => item.id === payload.value.id)) return current
+          const index = current.items.findIndex((item) => item.id === payload.value.id)
+          if (index >= 0) {
+            const items = current.items.slice()
+            items[index] = payload.value
+            return { ...current, items }
+          }
           return { ...current, total: current.total + 1, items: [payload.value, ...current.items].slice(0, 100) }
         })
       } else if (payload.case === 'apiRequest') {

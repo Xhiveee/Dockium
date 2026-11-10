@@ -100,6 +100,20 @@ func TestSessionsAndSecurity(t *testing.T) {
 	if err != nil || failures != 5 {
 		t.Fatalf("failures = %d, err = %v", failures, err)
 	}
+	logID, err := database.InsertLoginLog(ctx, &LoginLog{Login: "admin", Success: true, IP: "8.8.8.8", Country: "США", CreatedAt: Now()})
+	if err != nil {
+		t.Fatalf("login log with country: %v", err)
+	}
+	if err := database.UpdateLoginLogCountry(ctx, logID, "United States"); err != nil {
+		t.Fatalf("update login log country: %v", err)
+	}
+	logs, err := database.ListLoginLogs(ctx, 10, 0)
+	if err != nil || len(logs) != 6 {
+		t.Fatalf("list login logs: %v, %d", err, len(logs))
+	}
+	if logs[0].ID != logID || logs[0].Country != "United States" {
+		t.Fatalf("login log country = %+v", logs[0])
+	}
 	ban, err := database.CreateBan(ctx, &Ban{IP: "10.0.0.1", Reason: "test", Source: "auto", BannedAt: Now(), ExpiresAt: Now() + 60_000})
 	if err != nil {
 		t.Fatalf("create ban: %v", err)

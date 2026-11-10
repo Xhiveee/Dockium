@@ -5310,6 +5310,7 @@ type LoginLog struct {
 	Browser       string                 `protobuf:"bytes,7,opt,name=browser,proto3" json:"browser,omitempty"`
 	Os            string                 `protobuf:"bytes,8,opt,name=os,proto3" json:"os,omitempty"`
 	CreatedAt     int64                  `protobuf:"varint,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Country       string                 `protobuf:"bytes,10,opt,name=country,proto3" json:"country,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5405,6 +5406,13 @@ func (x *LoginLog) GetCreatedAt() int64 {
 		return x.CreatedAt
 	}
 	return 0
+}
+
+func (x *LoginLog) GetCountry() string {
+	if x != nil {
+		return x.Country
+	}
+	return ""
 }
 
 type LoginLogList struct {
@@ -6839,7 +6847,7 @@ const file_panel_v1_panel_proto_rawDesc = "" +
 	"\x04kind\x18\x05 \x01(\x0e2\x1e.dockium.panel.v1.ScheduleKindR\x04kind\x12)\n" +
 	"\x10interval_minutes\x18\x06 \x01(\rR\x0fintervalMinutes\x12\x1e\n" +
 	"\vtime_of_day\x18\a \x01(\tR\ttimeOfDay\x12\x18\n" +
-	"\aenabled\x18\b \x01(\bR\aenabled\"\xda\x01\n" +
+	"\aenabled\x18\b \x01(\bR\aenabled\"\xf4\x01\n" +
 	"\bLoginLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
 	"\x05login\x18\x02 \x01(\tR\x05login\x12\x18\n" +
@@ -6851,7 +6859,9 @@ const file_panel_v1_panel_proto_rawDesc = "" +
 	"\abrowser\x18\a \x01(\tR\abrowser\x12\x0e\n" +
 	"\x02os\x18\b \x01(\tR\x02os\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\t \x01(\x03R\tcreatedAt\"V\n" +
+	"created_at\x18\t \x01(\x03R\tcreatedAt\x12\x18\n" +
+	"\acountry\x18\n" +
+	" \x01(\tR\acountry\"V\n" +
 	"\fLoginLogList\x120\n" +
 	"\x05items\x18\x01 \x03(\v2\x1a.dockium.panel.v1.LoginLogR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\rR\x05total\"\x91\x01\n" +

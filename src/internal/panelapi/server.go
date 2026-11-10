@@ -21,6 +21,7 @@ import (
 	"dockium/internal/auth"
 	"dockium/internal/control"
 	"dockium/internal/db"
+	"dockium/internal/geoip"
 	"dockium/internal/hub"
 	"dockium/internal/present"
 	"dockium/internal/realtime"
@@ -417,6 +418,7 @@ func (s *Server) clearCookie() *http.Cookie {
 
 func (s *Server) loginLog(ctx context.Context, login string, success bool, reason, ip, userAgent string) *db.LoginLog {
 	browser, osName := auth.ParseUserAgent(userAgent)
+	country, resolved := geoip.Classify(ip)
 	entry := &db.LoginLog{
 		Login:     login,
 		Success:   success,
@@ -425,6 +427,7 @@ func (s *Server) loginLog(ctx context.Context, login string, success bool, reaso
 		UserAgent: userAgent,
 		Browser:   browser,
 		OS:        osName,
+		Country:   country,
 		CreatedAt: db.Now(),
 	}
 	id, err := s.store.InsertLoginLog(ctx, entry)
@@ -434,7 +437,28 @@ func (s *Server) loginLog(ctx context.Context, login string, success bool, reaso
 	}
 	entry.ID = id
 	s.publisher.LoginLogged(entry)
+	if !resolved {
+		pending := *entry
+		go s.resolveLoginCountry(&pending)
+	}
 	return entry
+}
+
+func (s *Server) resolveLoginCountry(entry *db.LoginLog) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	country := geoip.CountryForIP(ctx, entry.IP)
+	if country == "" {
+		return
+	}
+	saveCtx, saveCancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer saveCancel()
+	if err := s.store.UpdateLoginLogCountry(saveCtx, entry.ID, country); err != nil {
+		s.log.Warn("update login log country", "error", err)
+		return
+	}
+	entry.Country = country
+	s.publisher.LoginLogged(entry)
 }
 
 func (s *Server) requireUser(ctx context.Context) (*principal, error) {

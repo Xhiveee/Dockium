@@ -51,6 +51,7 @@ type LoginLog struct {
 	UserAgent string
 	Browser   string
 	OS        string
+	Country   string
 	CreatedAt int64
 }
 
