@@ -14,3 +14,5 @@ src/bin/
 src/web/node_modules/
 src/web/dist/
 src/web/.vite/
+
+graphify-out/
