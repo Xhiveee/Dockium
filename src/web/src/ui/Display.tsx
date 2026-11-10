@@ -3,6 +3,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { cx } from '../lib/cx'
 import { copyText } from '../lib/format'
 import { Button } from './Button'
+import { useToast } from './Toast'
 import styles from './Display.module.css'
 
 export type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'accent'
@@ -234,6 +235,7 @@ export function KeyValue({ items, columns = 2 }: { items: { label: string; value
 
 export function CopyField({ value, label, mono = true }: { value: string; label?: string; mono?: boolean }) {
   const [copied, setCopied] = useState(false)
+  const toast = useToast()
   return (
     <div className={styles.copyField}>
       {label ? <span className={styles.copyLabel}>{label}</span> : null}
@@ -249,6 +251,8 @@ export function CopyField({ value, label, mono = true }: { value: string; label?
             if (await copyText(value)) {
               setCopied(true)
               window.setTimeout(() => setCopied(false), 1600)
+            } else {
+              toast.error('Не удалось скопировать', 'Выделите значение вручную')
             }
           }}
         />
