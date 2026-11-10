@@ -249,3 +249,26 @@ func TestDeleteAgentCascadesInstances(t *testing.T) {
 		t.Fatalf("cascade failed: %d, %v", len(instances), err)
 	}
 }
+
+func TestPanelSettings(t *testing.T) {
+	ctx := context.Background()
+	database := openTestDB(t)
+
+	settings, err := database.PanelSettings(ctx)
+	if err != nil {
+		t.Fatalf("read settings: %v", err)
+	}
+	if settings.MaxUploadMB != 1024 {
+		t.Fatalf("default max upload = %d, want 1024", settings.MaxUploadMB)
+	}
+	if err := database.UpdatePanelSettings(ctx, &PanelSettings{MaxUploadMB: 2048}); err != nil {
+		t.Fatalf("update settings: %v", err)
+	}
+	settings, err = database.PanelSettings(ctx)
+	if err != nil || settings.MaxUploadMB != 2048 {
+		t.Fatalf("updated max upload = %+v, err = %v", settings, err)
+	}
+	if err := database.UpdatePanelSettings(ctx, &PanelSettings{MaxUploadMB: 5000}); err == nil {
+		t.Fatal("out-of-range max upload must be rejected")
+	}
+}

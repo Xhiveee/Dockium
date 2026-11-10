@@ -445,6 +445,9 @@ message UploadFileRequest {
   string path = 2;
   bytes content = 3;
   bool overwrite = 4;
+  string upload_id = 5;
+  uint64 offset = 6;
+  bool final = 7;
 }
 
 message DownloadFileRequest {
@@ -747,4 +750,17 @@ message DashboardOverview {
 
 service DashboardService {
   rpc GetOverview(google.protobuf.Empty) returns (DashboardOverview);
+}
+
+message PanelSettings {
+  uint32 max_upload_mb = 1;
+}
+
+message UpdatePanelSettingsRequest {
+  uint32 max_upload_mb = 1;
+}
+
+service SettingsService {
+  rpc Get(google.protobuf.Empty) returns (PanelSettings);
+  rpc Update(UpdatePanelSettingsRequest) returns (PanelSettings);
 }

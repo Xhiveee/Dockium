@@ -46,6 +46,8 @@ const (
 	SecurityEventsServiceName = "dockium.panel.v1.SecurityEventsService"
 	// DashboardServiceName is the fully-qualified name of the DashboardService service.
 	DashboardServiceName = "dockium.panel.v1.DashboardService"
+	// SettingsServiceName is the fully-qualified name of the SettingsService service.
+	SettingsServiceName = "dockium.panel.v1.SettingsService"
 )
 
 // These constants are the fully-qualified names of the RPCs defined in this package. They're
@@ -199,6 +201,10 @@ const (
 	// DashboardServiceGetOverviewProcedure is the fully-qualified name of the DashboardService's
 	// GetOverview RPC.
 	DashboardServiceGetOverviewProcedure = "/dockium.panel.v1.DashboardService/GetOverview"
+	// SettingsServiceGetProcedure is the fully-qualified name of the SettingsService's Get RPC.
+	SettingsServiceGetProcedure = "/dockium.panel.v1.SettingsService/Get"
+	// SettingsServiceUpdateProcedure is the fully-qualified name of the SettingsService's Update RPC.
+	SettingsServiceUpdateProcedure = "/dockium.panel.v1.SettingsService/Update"
 )
 
 // SetupServiceClient is a client for the dockium.panel.v1.SetupService service.
@@ -2314,4 +2320,100 @@ type UnimplementedDashboardServiceHandler struct{}
 
 func (UnimplementedDashboardServiceHandler) GetOverview(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.DashboardOverview], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("dockium.panel.v1.DashboardService.GetOverview is not implemented"))
+}
+
+// SettingsServiceClient is a client for the dockium.panel.v1.SettingsService service.
+type SettingsServiceClient interface {
+	Get(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.PanelSettings], error)
+	Update(context.Context, *connect.Request[v1.UpdatePanelSettingsRequest]) (*connect.Response[v1.PanelSettings], error)
+}
+
+// NewSettingsServiceClient constructs a client for the dockium.panel.v1.SettingsService service. By
+// default, it uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses,
+// and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the
+// connect.WithGRPC() or connect.WithGRPCWeb() options.
+//
+// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
+// http://api.acme.com or https://acme.com/grpc).
+func NewSettingsServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) SettingsServiceClient {
+	baseURL = strings.TrimRight(baseURL, "/")
+	settingsServiceMethods := v1.File_panel_v1_panel_proto.Services().ByName("SettingsService").Methods()
+	return &settingsServiceClient{
+		get: connect.NewClient[emptypb.Empty, v1.PanelSettings](
+			httpClient,
+			baseURL+SettingsServiceGetProcedure,
+			connect.WithSchema(settingsServiceMethods.ByName("Get")),
+			connect.WithClientOptions(opts...),
+		),
+		update: connect.NewClient[v1.UpdatePanelSettingsRequest, v1.PanelSettings](
+			httpClient,
+			baseURL+SettingsServiceUpdateProcedure,
+			connect.WithSchema(settingsServiceMethods.ByName("Update")),
+			connect.WithClientOptions(opts...),
+		),
+	}
+}
+
+// settingsServiceClient implements SettingsServiceClient.
+type settingsServiceClient struct {
+	get    *connect.Client[emptypb.Empty, v1.PanelSettings]
+	update *connect.Client[v1.UpdatePanelSettingsRequest, v1.PanelSettings]
+}
+
+// Get calls dockium.panel.v1.SettingsService.Get.
+func (c *settingsServiceClient) Get(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.PanelSettings], error) {
+	return c.get.CallUnary(ctx, req)
+}
+
+// Update calls dockium.panel.v1.SettingsService.Update.
+func (c *settingsServiceClient) Update(ctx context.Context, req *connect.Request[v1.UpdatePanelSettingsRequest]) (*connect.Response[v1.PanelSettings], error) {
+	return c.update.CallUnary(ctx, req)
+}
+
+// SettingsServiceHandler is an implementation of the dockium.panel.v1.SettingsService service.
+type SettingsServiceHandler interface {
+	Get(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.PanelSettings], error)
+	Update(context.Context, *connect.Request[v1.UpdatePanelSettingsRequest]) (*connect.Response[v1.PanelSettings], error)
+}
+
+// NewSettingsServiceHandler builds an HTTP handler from the service implementation. It returns the
+// path on which to mount the handler and the handler itself.
+//
+// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
+// and JSON codecs. They also support gzip compression.
+func NewSettingsServiceHandler(svc SettingsServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	settingsServiceMethods := v1.File_panel_v1_panel_proto.Services().ByName("SettingsService").Methods()
+	settingsServiceGetHandler := connect.NewUnaryHandler(
+		SettingsServiceGetProcedure,
+		svc.Get,
+		connect.WithSchema(settingsServiceMethods.ByName("Get")),
+		connect.WithHandlerOptions(opts...),
+	)
+	settingsServiceUpdateHandler := connect.NewUnaryHandler(
+		SettingsServiceUpdateProcedure,
+		svc.Update,
+		connect.WithSchema(settingsServiceMethods.ByName("Update")),
+		connect.WithHandlerOptions(opts...),
+	)
+	return "/dockium.panel.v1.SettingsService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case SettingsServiceGetProcedure:
+			settingsServiceGetHandler.ServeHTTP(w, r)
+		case SettingsServiceUpdateProcedure:
+			settingsServiceUpdateHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}
+
+// UnimplementedSettingsServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedSettingsServiceHandler struct{}
+
+func (UnimplementedSettingsServiceHandler) Get(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.PanelSettings], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("dockium.panel.v1.SettingsService.Get is not implemented"))
+}
+
+func (UnimplementedSettingsServiceHandler) Update(context.Context, *connect.Request[v1.UpdatePanelSettingsRequest]) (*connect.Response[v1.PanelSettings], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("dockium.panel.v1.SettingsService.Update is not implemented"))
 }

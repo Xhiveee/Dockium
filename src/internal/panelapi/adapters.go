@@ -159,6 +159,16 @@ func (s *securityEventsService) Watch(ctx context.Context, request *connect.Requ
 	return s.Server.WatchSecurity(ctx, request, stream)
 }
 
+type settingsService struct{ *Server }
+
+func (s *settingsService) Get(ctx context.Context, request *connect.Request[emptypb.Empty]) (*connect.Response[panelv1.PanelSettings], error) {
+	return s.Server.GetSettings(ctx, request)
+}
+
+func (s *settingsService) Update(ctx context.Context, request *connect.Request[panelv1.UpdatePanelSettingsRequest]) (*connect.Response[panelv1.PanelSettings], error) {
+	return s.Server.UpdateSettings(ctx, request)
+}
+
 type dashboardService struct{ *Server }
 
 func (s *dashboardService) GetOverview(ctx context.Context, request *connect.Request[emptypb.Empty]) (*connect.Response[panelv1.DashboardOverview], error) {

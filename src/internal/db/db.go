@@ -227,4 +227,9 @@ var migrations = []string{
 		initialized INTEGER NOT NULL DEFAULT 0
 	)`,
 	`INSERT INTO panel_state (id, initialized) VALUES (1, 0)`,
+	`CREATE TABLE panel_settings (
+		id INTEGER PRIMARY KEY CHECK (id = 1),
+		max_upload_mb INTEGER NOT NULL DEFAULT 1024 CHECK (max_upload_mb BETWEEN 1 AND 4096)
+	)`,
+	`INSERT INTO panel_settings (id, max_upload_mb) VALUES (1, 1024)`,
 }

@@ -10,6 +10,7 @@ import type {
   Instance,
   InstanceList,
   LoginLogList,
+  PanelSettings,
   ScheduledTaskList,
   SessionList,
   UserAccess,
@@ -30,6 +31,17 @@ export const keys = {
   api: ['security', 'api'] as const,
   bans: ['security', 'bans'] as const,
   sessions: ['security', 'sessions'] as const,
+  settings: ['settings'] as const,
+}
+
+export function useSettingsQuery(enabled = true) {
+  return useQuery<PanelSettings>({
+    queryKey: keys.settings,
+    queryFn: () => api.settings.get({}),
+    enabled,
+    staleTime: 60_000,
+    retry: 1,
+  })
 }
 
 export function useInstancesQuery() {

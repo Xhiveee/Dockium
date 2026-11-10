@@ -11,6 +11,7 @@ import {
   ScheduleService,
   SecurityEventsService,
   SecurityService,
+  SettingsService,
   SetupService,
   UserService,
 } from '../gen/panel/v1/panel_pb'
@@ -33,6 +34,7 @@ export const api = {
   security: createClient(SecurityService, transport),
   securityEvents: createClient(SecurityEventsService, transport),
   dashboard: createClient(DashboardService, transport),
+  settings: createClient(SettingsService, transport),
 }
 
 export function errorMessage(error: unknown): string {

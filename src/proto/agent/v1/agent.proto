@@ -185,6 +185,9 @@ message UploadFile {
   string path = 2;
   bytes content = 3;
   bool overwrite = 4;
+  string upload_id = 5;
+  uint64 offset = 6;
+  bool final = 7;
 }
 
 message DownloadFile {

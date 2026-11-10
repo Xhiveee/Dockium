@@ -1732,6 +1732,9 @@ type UploadFile struct {
 	Path          string                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
 	Content       []byte                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
 	Overwrite     bool                   `protobuf:"varint,4,opt,name=overwrite,proto3" json:"overwrite,omitempty"`
+	UploadId      string                 `protobuf:"bytes,5,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	Offset        uint64                 `protobuf:"varint,6,opt,name=offset,proto3" json:"offset,omitempty"`
+	Final         bool                   `protobuf:"varint,7,opt,name=final,proto3" json:"final,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1790,6 +1793,27 @@ func (x *UploadFile) GetContent() []byte {
 func (x *UploadFile) GetOverwrite() bool {
 	if x != nil {
 		return x.Overwrite
+	}
+	return false
+}
+
+func (x *UploadFile) GetUploadId() string {
+	if x != nil {
+		return x.UploadId
+	}
+	return ""
+}
+
+func (x *UploadFile) GetOffset() uint64 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *UploadFile) GetFinal() bool {
+	if x != nil {
+		return x.Final
 	}
 	return false
 }
@@ -4238,14 +4262,17 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\vinstance_id\x18\x01 \x01(\x03R\n" +
 	"instanceId\x12\x19\n" +
 	"\bold_path\x18\x02 \x01(\tR\aoldPath\x12\x19\n" +
-	"\bnew_path\x18\x03 \x01(\tR\anewPath\"y\n" +
+	"\bnew_path\x18\x03 \x01(\tR\anewPath\"\xc4\x01\n" +
 	"\n" +
 	"UploadFile\x12\x1f\n" +
 	"\vinstance_id\x18\x01 \x01(\x03R\n" +
 	"instanceId\x12\x12\n" +
 	"\x04path\x18\x02 \x01(\tR\x04path\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\fR\acontent\x12\x1c\n" +
-	"\toverwrite\x18\x04 \x01(\bR\toverwrite\"`\n" +
+	"\toverwrite\x18\x04 \x01(\bR\toverwrite\x12\x1b\n" +
+	"\tupload_id\x18\x05 \x01(\tR\buploadId\x12\x16\n" +
+	"\x06offset\x18\x06 \x01(\x04R\x06offset\x12\x14\n" +
+	"\x05final\x18\a \x01(\bR\x05final\"`\n" +
 	"\fDownloadFile\x12\x1f\n" +
 	"\vinstance_id\x18\x01 \x01(\x03R\n" +
 	"instanceId\x12\x12\n" +

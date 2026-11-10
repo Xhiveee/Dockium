@@ -1,6 +1,5 @@
 import { api, isUnauthenticated } from '../api/client'
 import type { BuildOutput } from '../gen/panel/v1/panel_pb'
-import { joinPath } from '../lib/paths'
 
 export async function streamBuild(
   agentId: bigint,
@@ -54,33 +53,39 @@ export async function downloadToBrowser(
   window.setTimeout(() => URL.revokeObjectURL(url), 4000)
 }
 
+export const UPLOAD_CHUNK_SIZE = 4 * 1024 * 1024
+
+export type UploadProgress = (uploadedBytes: number, totalBytes: number) => void
+
 export async function uploadFile(
   instanceId: bigint,
   path: string,
   file: File,
   overwrite: boolean,
+  maxBytes: number,
+  onProgress?: UploadProgress,
 ): Promise<void> {
-  const maximum = 32 * 1024 * 1024
-  if (file.size > maximum) {
-    throw new Error('Файл больше 32 МБ: используйте агент или архив')
+  if (file.size > maxBytes) {
+    const maximumMB = Math.max(1, Math.floor(maxBytes / (1024 * 1024)))
+    throw new Error('Файл ' + file.name + ' больше ' + maximumMB + ' МБ')
   }
-  const content = new Uint8Array(await file.arrayBuffer())
-  await api.files.uploadFile({ instanceId, path, content, overwrite })
-}
-
-export async function uploadMany(
-  instanceId: bigint,
-  directory: string,
-  files: File[],
-  onProgress?: (done: number, total: number, current: string) => void,
-): Promise<void> {
-  for (let index = 0; index < files.length; index += 1) {
-    const file = files[index]
-    if (!file) continue
-    onProgress?.(index, files.length, file.name)
-    await uploadFile(instanceId, joinPath(directory, file.name), file, false)
-  }
-  onProgress?.(files.length, files.length, '')
+  const uploadId = crypto.randomUUID()
+  let offset = 0
+  do {
+    const end = Math.min(offset + UPLOAD_CHUNK_SIZE, file.size)
+    const content = new Uint8Array(await file.slice(offset, end).arrayBuffer())
+    await api.files.uploadFile({
+      instanceId,
+      path,
+      content,
+      overwrite,
+      uploadId,
+      offset: BigInt(offset),
+      final: end >= file.size,
+    })
+    offset = end
+    onProgress?.(offset, file.size)
+  } while (offset < file.size)
 }
 
 export function decodeUtf8(content: Uint8Array): string {

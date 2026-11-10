@@ -19,6 +19,10 @@ const (
 	StatusFailed   = "failed"
 )
 
+type PanelSettings struct {
+	MaxUploadMB uint32
+}
+
 type User struct {
 	ID           int64
 	Login        string

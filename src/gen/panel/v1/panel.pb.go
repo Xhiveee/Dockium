@@ -3849,6 +3849,9 @@ type UploadFileRequest struct {
 	Path          string                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
 	Content       []byte                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
 	Overwrite     bool                   `protobuf:"varint,4,opt,name=overwrite,proto3" json:"overwrite,omitempty"`
+	UploadId      string                 `protobuf:"bytes,5,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	Offset        uint64                 `protobuf:"varint,6,opt,name=offset,proto3" json:"offset,omitempty"`
+	Final         bool                   `protobuf:"varint,7,opt,name=final,proto3" json:"final,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3907,6 +3910,27 @@ func (x *UploadFileRequest) GetContent() []byte {
 func (x *UploadFileRequest) GetOverwrite() bool {
 	if x != nil {
 		return x.Overwrite
+	}
+	return false
+}
+
+func (x *UploadFileRequest) GetUploadId() string {
+	if x != nil {
+		return x.UploadId
+	}
+	return ""
+}
+
+func (x *UploadFileRequest) GetOffset() uint64 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *UploadFileRequest) GetFinal() bool {
+	if x != nil {
+		return x.Final
 	}
 	return false
 }
@@ -6285,6 +6309,94 @@ func (x *DashboardOverview) GetGeneratedAt() int64 {
 	return 0
 }
 
+type PanelSettings struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MaxUploadMb   uint32                 `protobuf:"varint,1,opt,name=max_upload_mb,json=maxUploadMb,proto3" json:"max_upload_mb,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PanelSettings) Reset() {
+	*x = PanelSettings{}
+	mi := &file_panel_v1_panel_proto_msgTypes[87]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PanelSettings) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PanelSettings) ProtoMessage() {}
+
+func (x *PanelSettings) ProtoReflect() protoreflect.Message {
+	mi := &file_panel_v1_panel_proto_msgTypes[87]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PanelSettings.ProtoReflect.Descriptor instead.
+func (*PanelSettings) Descriptor() ([]byte, []int) {
+	return file_panel_v1_panel_proto_rawDescGZIP(), []int{87}
+}
+
+func (x *PanelSettings) GetMaxUploadMb() uint32 {
+	if x != nil {
+		return x.MaxUploadMb
+	}
+	return 0
+}
+
+type UpdatePanelSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MaxUploadMb   uint32                 `protobuf:"varint,1,opt,name=max_upload_mb,json=maxUploadMb,proto3" json:"max_upload_mb,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePanelSettingsRequest) Reset() {
+	*x = UpdatePanelSettingsRequest{}
+	mi := &file_panel_v1_panel_proto_msgTypes[88]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePanelSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePanelSettingsRequest) ProtoMessage() {}
+
+func (x *UpdatePanelSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_panel_v1_panel_proto_msgTypes[88]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePanelSettingsRequest.ProtoReflect.Descriptor instead.
+func (*UpdatePanelSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_panel_v1_panel_proto_rawDescGZIP(), []int{88}
+}
+
+func (x *UpdatePanelSettingsRequest) GetMaxUploadMb() uint32 {
+	if x != nil {
+		return x.MaxUploadMb
+	}
+	return 0
+}
+
 var File_panel_v1_panel_proto protoreflect.FileDescriptor
 
 const file_panel_v1_panel_proto_rawDesc = "" +
@@ -6588,13 +6700,16 @@ const file_panel_v1_panel_proto_rawDesc = "" +
 	"\vinstance_id\x18\x01 \x01(\x03R\n" +
 	"instanceId\x12\x19\n" +
 	"\bold_path\x18\x02 \x01(\tR\aoldPath\x12\x19\n" +
-	"\bnew_path\x18\x03 \x01(\tR\anewPath\"\x80\x01\n" +
+	"\bnew_path\x18\x03 \x01(\tR\anewPath\"\xcb\x01\n" +
 	"\x11UploadFileRequest\x12\x1f\n" +
 	"\vinstance_id\x18\x01 \x01(\x03R\n" +
 	"instanceId\x12\x12\n" +
 	"\x04path\x18\x02 \x01(\tR\x04path\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\fR\acontent\x12\x1c\n" +
-	"\toverwrite\x18\x04 \x01(\bR\toverwrite\"J\n" +
+	"\toverwrite\x18\x04 \x01(\bR\toverwrite\x12\x1b\n" +
+	"\tupload_id\x18\x05 \x01(\tR\buploadId\x12\x16\n" +
+	"\x06offset\x18\x06 \x01(\x04R\x06offset\x12\x14\n" +
+	"\x05final\x18\a \x01(\bR\x05final\"J\n" +
 	"\x13DownloadFileRequest\x12\x1f\n" +
 	"\vinstance_id\x18\x01 \x01(\x03R\n" +
 	"instanceId\x12\x12\n" +
@@ -6798,7 +6913,11 @@ const file_panel_v1_panel_proto_rawDesc = "" +
 	"\x06agents\x18\r \x03(\v2\x17.dockium.panel.v1.AgentR\x06agents\x12F\n" +
 	"\x0eupcoming_tasks\x18\x0e \x03(\v2\x1f.dockium.panel.v1.ScheduledTaskR\rupcomingTasks\x12?\n" +
 	"\rrecent_logins\x18\x0f \x03(\v2\x1a.dockium.panel.v1.LoginLogR\frecentLogins\x12!\n" +
-	"\fgenerated_at\x18\x10 \x01(\x03R\vgeneratedAt*\xdf\x01\n" +
+	"\fgenerated_at\x18\x10 \x01(\x03R\vgeneratedAt\"3\n" +
+	"\rPanelSettings\x12\"\n" +
+	"\rmax_upload_mb\x18\x01 \x01(\rR\vmaxUploadMb\"@\n" +
+	"\x1aUpdatePanelSettingsRequest\x12\"\n" +
+	"\rmax_upload_mb\x18\x01 \x01(\rR\vmaxUploadMb*\xdf\x01\n" +
 	"\x0eInstanceStatus\x12\x1f\n" +
 	"\x1bINSTANCE_STATUS_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17INSTANCE_STATUS_STOPPED\x10\x01\x12\x1c\n" +
@@ -6900,7 +7019,10 @@ const file_panel_v1_panel_proto_rawDesc = "" +
 	"\x15SecurityEventsService\x12B\n" +
 	"\x05Watch\x12\x16.google.protobuf.Empty\x1a\x1f.dockium.panel.v1.SecurityEvent0\x012^\n" +
 	"\x10DashboardService\x12J\n" +
-	"\vGetOverview\x12\x16.google.protobuf.Empty\x1a#.dockium.panel.v1.DashboardOverviewB\xa2\x01\n" +
+	"\vGetOverview\x12\x16.google.protobuf.Empty\x1a#.dockium.panel.v1.DashboardOverview2\xaa\x01\n" +
+	"\x0fSettingsService\x12>\n" +
+	"\x03Get\x12\x16.google.protobuf.Empty\x1a\x1f.dockium.panel.v1.PanelSettings\x12W\n" +
+	"\x06Update\x12,.dockium.panel.v1.UpdatePanelSettingsRequest\x1a\x1f.dockium.panel.v1.PanelSettingsB\xa2\x01\n" +
 	"\x14com.dockium.panel.v1B\n" +
 	"PanelProtoP\x01Z\x1cdockium/gen/panel/v1;panelv1\xa2\x02\x03DPX\xaa\x02\x10Dockium.Panel.V1\xca\x02\x10Dockium\\Panel\\V1\xe2\x02\x1cDockium\\Panel\\V1\\GPBMetadata\xea\x02\x12Dockium::Panel::V1b\x06proto3"
 
@@ -6917,7 +7039,7 @@ func file_panel_v1_panel_proto_rawDescGZIP() []byte {
 }
 
 var file_panel_v1_panel_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_panel_v1_panel_proto_msgTypes = make([]protoimpl.MessageInfo, 87)
+var file_panel_v1_panel_proto_msgTypes = make([]protoimpl.MessageInfo, 89)
 var file_panel_v1_panel_proto_goTypes = []any{
 	(InstanceStatus)(0),                // 0: dockium.panel.v1.InstanceStatus
 	(ConsoleLineKind)(0),               // 1: dockium.panel.v1.ConsoleLineKind
@@ -7010,7 +7132,9 @@ var file_panel_v1_panel_proto_goTypes = []any{
 	(*BanRemoved)(nil),                 // 88: dockium.panel.v1.BanRemoved
 	(*SecurityEvent)(nil),              // 89: dockium.panel.v1.SecurityEvent
 	(*DashboardOverview)(nil),          // 90: dockium.panel.v1.DashboardOverview
-	(*emptypb.Empty)(nil),              // 91: google.protobuf.Empty
+	(*PanelSettings)(nil),              // 91: dockium.panel.v1.PanelSettings
+	(*UpdatePanelSettingsRequest)(nil), // 92: dockium.panel.v1.UpdatePanelSettingsRequest
+	(*emptypb.Empty)(nil),              // 93: google.protobuf.Empty
 }
 var file_panel_v1_panel_proto_depIdxs = []int32{
 	6,   // 0: dockium.panel.v1.MeResponse.user:type_name -> dockium.panel.v1.User
@@ -7066,11 +7190,11 @@ var file_panel_v1_panel_proto_depIdxs = []int32{
 	20,  // 50: dockium.panel.v1.DashboardOverview.agents:type_name -> dockium.panel.v1.Agent
 	73,  // 51: dockium.panel.v1.DashboardOverview.upcoming_tasks:type_name -> dockium.panel.v1.ScheduledTask
 	78,  // 52: dockium.panel.v1.DashboardOverview.recent_logins:type_name -> dockium.panel.v1.LoginLog
-	91,  // 53: dockium.panel.v1.SetupService.GetStatus:input_type -> google.protobuf.Empty
+	93,  // 53: dockium.panel.v1.SetupService.GetStatus:input_type -> google.protobuf.Empty
 	11,  // 54: dockium.panel.v1.SetupService.CreateAdmin:input_type -> dockium.panel.v1.CreateAdminRequest
 	5,   // 55: dockium.panel.v1.AuthService.Login:input_type -> dockium.panel.v1.Credentials
-	91,  // 56: dockium.panel.v1.AuthService.Logout:input_type -> google.protobuf.Empty
-	91,  // 57: dockium.panel.v1.AuthService.Me:input_type -> google.protobuf.Empty
+	93,  // 56: dockium.panel.v1.AuthService.Logout:input_type -> google.protobuf.Empty
+	93,  // 57: dockium.panel.v1.AuthService.Me:input_type -> google.protobuf.Empty
 	9,   // 58: dockium.panel.v1.AuthService.ChangePassword:input_type -> dockium.panel.v1.ChangePasswordRequest
 	10,  // 59: dockium.panel.v1.AuthService.UpdateProfile:input_type -> dockium.panel.v1.UpdateProfileRequest
 	4,   // 60: dockium.panel.v1.UserService.List:input_type -> dockium.panel.v1.Page
@@ -7079,15 +7203,15 @@ var file_panel_v1_panel_proto_depIdxs = []int32{
 	16,  // 63: dockium.panel.v1.UserService.Delete:input_type -> dockium.panel.v1.UserIdRequest
 	16,  // 64: dockium.panel.v1.UserService.ListAccess:input_type -> dockium.panel.v1.UserIdRequest
 	19,  // 65: dockium.panel.v1.UserService.SetAccess:input_type -> dockium.panel.v1.SetAccessRequest
-	91,  // 66: dockium.panel.v1.AgentService.List:input_type -> google.protobuf.Empty
-	91,  // 67: dockium.panel.v1.AgentService.Watch:input_type -> google.protobuf.Empty
+	93,  // 66: dockium.panel.v1.AgentService.List:input_type -> google.protobuf.Empty
+	93,  // 67: dockium.panel.v1.AgentService.Watch:input_type -> google.protobuf.Empty
 	25,  // 68: dockium.panel.v1.AgentService.Create:input_type -> dockium.panel.v1.CreateAgentRequest
 	28,  // 69: dockium.panel.v1.AgentService.Update:input_type -> dockium.panel.v1.UpdateAgentRequest
 	16,  // 70: dockium.panel.v1.AgentService.Delete:input_type -> dockium.panel.v1.UserIdRequest
 	16,  // 71: dockium.panel.v1.AgentService.RotateToken:input_type -> dockium.panel.v1.UserIdRequest
-	91,  // 72: dockium.panel.v1.InstanceService.List:input_type -> google.protobuf.Empty
+	93,  // 72: dockium.panel.v1.InstanceService.List:input_type -> google.protobuf.Empty
 	39,  // 73: dockium.panel.v1.InstanceService.Get:input_type -> dockium.panel.v1.InstanceIdRequest
-	91,  // 74: dockium.panel.v1.InstanceService.Watch:input_type -> google.protobuf.Empty
+	93,  // 74: dockium.panel.v1.InstanceService.Watch:input_type -> google.protobuf.Empty
 	41,  // 75: dockium.panel.v1.InstanceService.Create:input_type -> dockium.panel.v1.CreateInstanceRequest
 	42,  // 76: dockium.panel.v1.InstanceService.Update:input_type -> dockium.panel.v1.UpdateInstanceRequest
 	40,  // 77: dockium.panel.v1.InstanceService.Delete:input_type -> dockium.panel.v1.DeleteInstanceRequest
@@ -7123,73 +7247,77 @@ var file_panel_v1_panel_proto_depIdxs = []int32{
 	82,  // 107: dockium.panel.v1.SecurityService.CreateBan:input_type -> dockium.panel.v1.CreateBanRequest
 	16,  // 108: dockium.panel.v1.SecurityService.DeleteBan:input_type -> dockium.panel.v1.UserIdRequest
 	4,   // 109: dockium.panel.v1.SecurityService.ListApiRequests:input_type -> dockium.panel.v1.Page
-	91,  // 110: dockium.panel.v1.SecurityService.ListSessions:input_type -> google.protobuf.Empty
+	93,  // 110: dockium.panel.v1.SecurityService.ListSessions:input_type -> google.protobuf.Empty
 	87,  // 111: dockium.panel.v1.SecurityService.RevokeSession:input_type -> dockium.panel.v1.RevokeSessionRequest
-	91,  // 112: dockium.panel.v1.SecurityEventsService.Watch:input_type -> google.protobuf.Empty
-	91,  // 113: dockium.panel.v1.DashboardService.GetOverview:input_type -> google.protobuf.Empty
-	7,   // 114: dockium.panel.v1.SetupService.GetStatus:output_type -> dockium.panel.v1.SetupStatus
-	6,   // 115: dockium.panel.v1.SetupService.CreateAdmin:output_type -> dockium.panel.v1.User
-	12,  // 116: dockium.panel.v1.AuthService.Login:output_type -> dockium.panel.v1.LoginResponse
-	91,  // 117: dockium.panel.v1.AuthService.Logout:output_type -> google.protobuf.Empty
-	8,   // 118: dockium.panel.v1.AuthService.Me:output_type -> dockium.panel.v1.MeResponse
-	91,  // 119: dockium.panel.v1.AuthService.ChangePassword:output_type -> google.protobuf.Empty
-	6,   // 120: dockium.panel.v1.AuthService.UpdateProfile:output_type -> dockium.panel.v1.User
-	13,  // 121: dockium.panel.v1.UserService.List:output_type -> dockium.panel.v1.UserList
-	6,   // 122: dockium.panel.v1.UserService.Create:output_type -> dockium.panel.v1.User
-	6,   // 123: dockium.panel.v1.UserService.Update:output_type -> dockium.panel.v1.User
-	91,  // 124: dockium.panel.v1.UserService.Delete:output_type -> google.protobuf.Empty
-	18,  // 125: dockium.panel.v1.UserService.ListAccess:output_type -> dockium.panel.v1.UserAccess
-	18,  // 126: dockium.panel.v1.UserService.SetAccess:output_type -> dockium.panel.v1.UserAccess
-	21,  // 127: dockium.panel.v1.AgentService.List:output_type -> dockium.panel.v1.AgentList
-	24,  // 128: dockium.panel.v1.AgentService.Watch:output_type -> dockium.panel.v1.AgentEvent
-	26,  // 129: dockium.panel.v1.AgentService.Create:output_type -> dockium.panel.v1.AgentCreated
-	20,  // 130: dockium.panel.v1.AgentService.Update:output_type -> dockium.panel.v1.Agent
-	91,  // 131: dockium.panel.v1.AgentService.Delete:output_type -> google.protobuf.Empty
-	27,  // 132: dockium.panel.v1.AgentService.RotateToken:output_type -> dockium.panel.v1.AgentToken
-	35,  // 133: dockium.panel.v1.InstanceService.List:output_type -> dockium.panel.v1.InstanceList
-	34,  // 134: dockium.panel.v1.InstanceService.Get:output_type -> dockium.panel.v1.Instance
-	38,  // 135: dockium.panel.v1.InstanceService.Watch:output_type -> dockium.panel.v1.InstanceEvent
-	34,  // 136: dockium.panel.v1.InstanceService.Create:output_type -> dockium.panel.v1.Instance
-	34,  // 137: dockium.panel.v1.InstanceService.Update:output_type -> dockium.panel.v1.Instance
-	91,  // 138: dockium.panel.v1.InstanceService.Delete:output_type -> google.protobuf.Empty
-	34,  // 139: dockium.panel.v1.InstanceService.Start:output_type -> dockium.panel.v1.Instance
-	34,  // 140: dockium.panel.v1.InstanceService.Stop:output_type -> dockium.panel.v1.Instance
-	34,  // 141: dockium.panel.v1.InstanceService.Restart:output_type -> dockium.panel.v1.Instance
-	34,  // 142: dockium.panel.v1.InstanceService.Kill:output_type -> dockium.panel.v1.Instance
-	34,  // 143: dockium.panel.v1.InstanceService.SetAutomation:output_type -> dockium.panel.v1.Instance
-	44,  // 144: dockium.panel.v1.ConsoleService.Attach:output_type -> dockium.panel.v1.ConsoleLine
-	91,  // 145: dockium.panel.v1.ConsoleService.Send:output_type -> google.protobuf.Empty
-	49,  // 146: dockium.panel.v1.FileService.ListFiles:output_type -> dockium.panel.v1.ListFilesResponse
-	51,  // 147: dockium.panel.v1.FileService.ReadFile:output_type -> dockium.panel.v1.ReadFileResponse
-	91,  // 148: dockium.panel.v1.FileService.WriteFile:output_type -> google.protobuf.Empty
-	91,  // 149: dockium.panel.v1.FileService.CreateDirectory:output_type -> google.protobuf.Empty
-	91,  // 150: dockium.panel.v1.FileService.DeleteFile:output_type -> google.protobuf.Empty
-	91,  // 151: dockium.panel.v1.FileService.RenameFile:output_type -> google.protobuf.Empty
-	91,  // 152: dockium.panel.v1.FileService.UploadFile:output_type -> google.protobuf.Empty
-	58,  // 153: dockium.panel.v1.FileService.DownloadFile:output_type -> dockium.panel.v1.FileChunk
-	91,  // 154: dockium.panel.v1.FileService.ChmodFile:output_type -> google.protobuf.Empty
-	61,  // 155: dockium.panel.v1.FileService.CompressFile:output_type -> dockium.panel.v1.CompressFileResponse
-	63,  // 156: dockium.panel.v1.DockerService.ListImages:output_type -> dockium.panel.v1.DockerImageList
-	65,  // 157: dockium.panel.v1.DockerService.ListContainers:output_type -> dockium.panel.v1.DockerContainerList
-	71,  // 158: dockium.panel.v1.DockerService.Inspect:output_type -> dockium.panel.v1.InspectDockerResponse
-	91,  // 159: dockium.panel.v1.DockerService.RemoveImage:output_type -> google.protobuf.Empty
-	72,  // 160: dockium.panel.v1.DockerService.PullImage:output_type -> dockium.panel.v1.BuildOutput
-	72,  // 161: dockium.panel.v1.DockerService.BuildImage:output_type -> dockium.panel.v1.BuildOutput
-	74,  // 162: dockium.panel.v1.ScheduleService.List:output_type -> dockium.panel.v1.ScheduledTaskList
-	73,  // 163: dockium.panel.v1.ScheduleService.Create:output_type -> dockium.panel.v1.ScheduledTask
-	73,  // 164: dockium.panel.v1.ScheduleService.Update:output_type -> dockium.panel.v1.ScheduledTask
-	91,  // 165: dockium.panel.v1.ScheduleService.Delete:output_type -> google.protobuf.Empty
-	79,  // 166: dockium.panel.v1.SecurityService.ListLoginLogs:output_type -> dockium.panel.v1.LoginLogList
-	81,  // 167: dockium.panel.v1.SecurityService.ListBans:output_type -> dockium.panel.v1.BanList
-	80,  // 168: dockium.panel.v1.SecurityService.CreateBan:output_type -> dockium.panel.v1.Ban
-	91,  // 169: dockium.panel.v1.SecurityService.DeleteBan:output_type -> google.protobuf.Empty
-	84,  // 170: dockium.panel.v1.SecurityService.ListApiRequests:output_type -> dockium.panel.v1.ApiRequestList
-	86,  // 171: dockium.panel.v1.SecurityService.ListSessions:output_type -> dockium.panel.v1.SessionList
-	91,  // 172: dockium.panel.v1.SecurityService.RevokeSession:output_type -> google.protobuf.Empty
-	89,  // 173: dockium.panel.v1.SecurityEventsService.Watch:output_type -> dockium.panel.v1.SecurityEvent
-	90,  // 174: dockium.panel.v1.DashboardService.GetOverview:output_type -> dockium.panel.v1.DashboardOverview
-	114, // [114:175] is the sub-list for method output_type
-	53,  // [53:114] is the sub-list for method input_type
+	93,  // 112: dockium.panel.v1.SecurityEventsService.Watch:input_type -> google.protobuf.Empty
+	93,  // 113: dockium.panel.v1.DashboardService.GetOverview:input_type -> google.protobuf.Empty
+	93,  // 114: dockium.panel.v1.SettingsService.Get:input_type -> google.protobuf.Empty
+	92,  // 115: dockium.panel.v1.SettingsService.Update:input_type -> dockium.panel.v1.UpdatePanelSettingsRequest
+	7,   // 116: dockium.panel.v1.SetupService.GetStatus:output_type -> dockium.panel.v1.SetupStatus
+	6,   // 117: dockium.panel.v1.SetupService.CreateAdmin:output_type -> dockium.panel.v1.User
+	12,  // 118: dockium.panel.v1.AuthService.Login:output_type -> dockium.panel.v1.LoginResponse
+	93,  // 119: dockium.panel.v1.AuthService.Logout:output_type -> google.protobuf.Empty
+	8,   // 120: dockium.panel.v1.AuthService.Me:output_type -> dockium.panel.v1.MeResponse
+	93,  // 121: dockium.panel.v1.AuthService.ChangePassword:output_type -> google.protobuf.Empty
+	6,   // 122: dockium.panel.v1.AuthService.UpdateProfile:output_type -> dockium.panel.v1.User
+	13,  // 123: dockium.panel.v1.UserService.List:output_type -> dockium.panel.v1.UserList
+	6,   // 124: dockium.panel.v1.UserService.Create:output_type -> dockium.panel.v1.User
+	6,   // 125: dockium.panel.v1.UserService.Update:output_type -> dockium.panel.v1.User
+	93,  // 126: dockium.panel.v1.UserService.Delete:output_type -> google.protobuf.Empty
+	18,  // 127: dockium.panel.v1.UserService.ListAccess:output_type -> dockium.panel.v1.UserAccess
+	18,  // 128: dockium.panel.v1.UserService.SetAccess:output_type -> dockium.panel.v1.UserAccess
+	21,  // 129: dockium.panel.v1.AgentService.List:output_type -> dockium.panel.v1.AgentList
+	24,  // 130: dockium.panel.v1.AgentService.Watch:output_type -> dockium.panel.v1.AgentEvent
+	26,  // 131: dockium.panel.v1.AgentService.Create:output_type -> dockium.panel.v1.AgentCreated
+	20,  // 132: dockium.panel.v1.AgentService.Update:output_type -> dockium.panel.v1.Agent
+	93,  // 133: dockium.panel.v1.AgentService.Delete:output_type -> google.protobuf.Empty
+	27,  // 134: dockium.panel.v1.AgentService.RotateToken:output_type -> dockium.panel.v1.AgentToken
+	35,  // 135: dockium.panel.v1.InstanceService.List:output_type -> dockium.panel.v1.InstanceList
+	34,  // 136: dockium.panel.v1.InstanceService.Get:output_type -> dockium.panel.v1.Instance
+	38,  // 137: dockium.panel.v1.InstanceService.Watch:output_type -> dockium.panel.v1.InstanceEvent
+	34,  // 138: dockium.panel.v1.InstanceService.Create:output_type -> dockium.panel.v1.Instance
+	34,  // 139: dockium.panel.v1.InstanceService.Update:output_type -> dockium.panel.v1.Instance
+	93,  // 140: dockium.panel.v1.InstanceService.Delete:output_type -> google.protobuf.Empty
+	34,  // 141: dockium.panel.v1.InstanceService.Start:output_type -> dockium.panel.v1.Instance
+	34,  // 142: dockium.panel.v1.InstanceService.Stop:output_type -> dockium.panel.v1.Instance
+	34,  // 143: dockium.panel.v1.InstanceService.Restart:output_type -> dockium.panel.v1.Instance
+	34,  // 144: dockium.panel.v1.InstanceService.Kill:output_type -> dockium.panel.v1.Instance
+	34,  // 145: dockium.panel.v1.InstanceService.SetAutomation:output_type -> dockium.panel.v1.Instance
+	44,  // 146: dockium.panel.v1.ConsoleService.Attach:output_type -> dockium.panel.v1.ConsoleLine
+	93,  // 147: dockium.panel.v1.ConsoleService.Send:output_type -> google.protobuf.Empty
+	49,  // 148: dockium.panel.v1.FileService.ListFiles:output_type -> dockium.panel.v1.ListFilesResponse
+	51,  // 149: dockium.panel.v1.FileService.ReadFile:output_type -> dockium.panel.v1.ReadFileResponse
+	93,  // 150: dockium.panel.v1.FileService.WriteFile:output_type -> google.protobuf.Empty
+	93,  // 151: dockium.panel.v1.FileService.CreateDirectory:output_type -> google.protobuf.Empty
+	93,  // 152: dockium.panel.v1.FileService.DeleteFile:output_type -> google.protobuf.Empty
+	93,  // 153: dockium.panel.v1.FileService.RenameFile:output_type -> google.protobuf.Empty
+	93,  // 154: dockium.panel.v1.FileService.UploadFile:output_type -> google.protobuf.Empty
+	58,  // 155: dockium.panel.v1.FileService.DownloadFile:output_type -> dockium.panel.v1.FileChunk
+	93,  // 156: dockium.panel.v1.FileService.ChmodFile:output_type -> google.protobuf.Empty
+	61,  // 157: dockium.panel.v1.FileService.CompressFile:output_type -> dockium.panel.v1.CompressFileResponse
+	63,  // 158: dockium.panel.v1.DockerService.ListImages:output_type -> dockium.panel.v1.DockerImageList
+	65,  // 159: dockium.panel.v1.DockerService.ListContainers:output_type -> dockium.panel.v1.DockerContainerList
+	71,  // 160: dockium.panel.v1.DockerService.Inspect:output_type -> dockium.panel.v1.InspectDockerResponse
+	93,  // 161: dockium.panel.v1.DockerService.RemoveImage:output_type -> google.protobuf.Empty
+	72,  // 162: dockium.panel.v1.DockerService.PullImage:output_type -> dockium.panel.v1.BuildOutput
+	72,  // 163: dockium.panel.v1.DockerService.BuildImage:output_type -> dockium.panel.v1.BuildOutput
+	74,  // 164: dockium.panel.v1.ScheduleService.List:output_type -> dockium.panel.v1.ScheduledTaskList
+	73,  // 165: dockium.panel.v1.ScheduleService.Create:output_type -> dockium.panel.v1.ScheduledTask
+	73,  // 166: dockium.panel.v1.ScheduleService.Update:output_type -> dockium.panel.v1.ScheduledTask
+	93,  // 167: dockium.panel.v1.ScheduleService.Delete:output_type -> google.protobuf.Empty
+	79,  // 168: dockium.panel.v1.SecurityService.ListLoginLogs:output_type -> dockium.panel.v1.LoginLogList
+	81,  // 169: dockium.panel.v1.SecurityService.ListBans:output_type -> dockium.panel.v1.BanList
+	80,  // 170: dockium.panel.v1.SecurityService.CreateBan:output_type -> dockium.panel.v1.Ban
+	93,  // 171: dockium.panel.v1.SecurityService.DeleteBan:output_type -> google.protobuf.Empty
+	84,  // 172: dockium.panel.v1.SecurityService.ListApiRequests:output_type -> dockium.panel.v1.ApiRequestList
+	86,  // 173: dockium.panel.v1.SecurityService.ListSessions:output_type -> dockium.panel.v1.SessionList
+	93,  // 174: dockium.panel.v1.SecurityService.RevokeSession:output_type -> google.protobuf.Empty
+	89,  // 175: dockium.panel.v1.SecurityEventsService.Watch:output_type -> dockium.panel.v1.SecurityEvent
+	90,  // 176: dockium.panel.v1.DashboardService.GetOverview:output_type -> dockium.panel.v1.DashboardOverview
+	91,  // 177: dockium.panel.v1.SettingsService.Get:output_type -> dockium.panel.v1.PanelSettings
+	91,  // 178: dockium.panel.v1.SettingsService.Update:output_type -> dockium.panel.v1.PanelSettings
+	116, // [116:179] is the sub-list for method output_type
+	53,  // [53:116] is the sub-list for method input_type
 	53,  // [53:53] is the sub-list for extension type_name
 	53,  // [53:53] is the sub-list for extension extendee
 	0,   // [0:53] is the sub-list for field type_name
@@ -7223,9 +7351,9 @@ func file_panel_v1_panel_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_panel_v1_panel_proto_rawDesc), len(file_panel_v1_panel_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   87,
+			NumMessages:   89,
 			NumExtensions: 0,
-			NumServices:   12,
+			NumServices:   13,
 		},
 		GoTypes:           file_panel_v1_panel_proto_goTypes,
 		DependencyIndexes: file_panel_v1_panel_proto_depIdxs,

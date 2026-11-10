@@ -118,6 +118,8 @@ func (s *Server) Handler() (http.Handler, error) {
 	add(path, handler)
 	path, handler = panelv1connect.NewDashboardServiceHandler(&dashboardService{s}, options...)
 	add(path, handler)
+	path, handler = panelv1connect.NewSettingsServiceHandler(&settingsService{s}, options...)
+	add(path, handler)
 	for _, item := range paths {
 		mount(item.path, item.handler)
 	}

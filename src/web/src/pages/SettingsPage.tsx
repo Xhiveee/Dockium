@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { KeyRound, MonitorSmartphone, ShieldCheck, UserRound } from 'lucide-react'
+import { KeyRound, MonitorSmartphone, ShieldCheck, Upload, UserRound } from 'lucide-react'
 import { api, errorMessage } from '../api/client'
 import { useLive } from '../data/live'
-import { keys } from '../data/queries'
+import { keys, useSettingsQuery } from '../data/queries'
 import { useSession } from '../data/session'
 import type { MeResponse } from '../gen/panel/v1/panel_pb'
 import { roleLabel } from '../lib/format'
@@ -24,6 +24,15 @@ export function SettingsPage() {
   const [login, setLogin] = useState(user?.login ?? '')
   const [profileBusy, setProfileBusy] = useState(false)
   const [profileError, setProfileError] = useState('')
+
+  const settingsQuery = useSettingsQuery(isAdmin)
+  const [maxUploadMB, setMaxUploadMB] = useState('')
+  const [settingsBusy, setSettingsBusy] = useState(false)
+  const [settingsError, setSettingsError] = useState('')
+
+  useEffect(() => {
+    if (settingsQuery.data) setMaxUploadMB(String(settingsQuery.data.maxUploadMb))
+  }, [settingsQuery.data])
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -49,6 +58,25 @@ export function SettingsPage() {
       setProfileError(errorMessage(error))
     } finally {
       setProfileBusy(false)
+    }
+  }
+
+  const saveUploadSettings = async () => {
+    const value = Number(maxUploadMB)
+    if (!Number.isInteger(value) || value < 1 || value > 4096) {
+      setSettingsError('Укажите целое число от 1 до 4096 МБ')
+      return
+    }
+    setSettingsBusy(true)
+    setSettingsError('')
+    try {
+      const updated = await api.settings.update({ maxUploadMb: value })
+      queryClient.setQueryData(keys.settings, updated)
+      toast.success('Настройки сохранены', `Максимум загрузки: ${value} МБ`)
+    } catch (error) {
+      setSettingsError(errorMessage(error))
+    } finally {
+      setSettingsBusy(false)
     }
   }
 
@@ -82,7 +110,7 @@ export function SettingsPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Настройки" description="Профиль и параметры текущей сессии." />
+      <PageHeader title="Настройки" description="Профиль, безопасность и параметры панели." />
 
       <div className={styles.grid}>
         <Panel title="Профиль" icon={<UserRound size={14} />}>
@@ -148,6 +176,39 @@ export function SettingsPage() {
             />
           </div>
         </Panel>
+
+        {isAdmin ? (
+          <Panel title="Загрузка файлов" icon={<Upload size={14} />}>
+            <div className={styles.stack}>
+              <Field
+                label="Максимальный размер файла"
+                htmlFor="max-upload-mb"
+                hint="От 1 до 4096 МБ. Действует для всех пользователей."
+                error={settingsError}
+              >
+                <div className={styles.inlineForm}>
+                  <Input
+                    id="max-upload-mb"
+                    type="number"
+                    min={1}
+                    max={4096}
+                    value={maxUploadMB}
+                    onChange={(event) => setMaxUploadMB(event.target.value)}
+                    invalid={Boolean(settingsError)}
+                  />
+                  <span className={styles.hint}>МБ</span>
+                  <Button variant="secondary" onClick={() => void saveUploadSettings()} loading={settingsBusy}>
+                    Сохранить
+                  </Button>
+                </div>
+              </Field>
+              <p className={styles.hint}>
+                Файлы больше лимита будут отклонены панелью. Загрузка выполняется частями, поэтому большие файлы
+                не загружаются в память целиком.
+              </p>
+            </div>
+          </Panel>
+        ) : null}
 
         <Panel title="Пароль" icon={<KeyRound size={14} />}>
           <div className={styles.passwordForm}>

@@ -2,9 +2,11 @@ package agent
 
 import (
 	"archive/zip"
+	"bytes"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	agentv1 "dockium/gen/agent/v1"
@@ -164,6 +166,87 @@ func TestMkdirAndChmod(t *testing.T) {
 		if info.Mode().Perm() != 0o750 {
 			t.Fatalf("mode = %o", info.Mode().Perm())
 		}
+	}
+}
+
+func TestFileUploadChunks(t *testing.T) {
+	files, directory := newTestFiles(t)
+	content := bytes.Repeat([]byte("dockium-"), 16)
+	uploadID := "upload-test-1234"
+
+	first := files.handleUpload(1, &agentv1.UploadFile{
+		InstanceId: 7,
+		Path:       "nested/large.bin",
+		Content:    content[:40],
+		UploadId:   uploadID,
+		Offset:     0,
+	})
+	if first.Error != "" {
+		t.Fatalf("first chunk: %s", first.Error)
+	}
+	second := files.handleUpload(1, &agentv1.UploadFile{
+		InstanceId: 7,
+		Path:       "nested/large.bin",
+		Content:    content[40:80],
+		UploadId:   uploadID,
+		Offset:     40,
+	})
+	if second.Error != "" {
+		t.Fatalf("second chunk: %s", second.Error)
+	}
+	last := files.handleUpload(1, &agentv1.UploadFile{
+		InstanceId: 7,
+		Path:       "nested/large.bin",
+		Content:    content[80:],
+		UploadId:   uploadID,
+		Offset:     80,
+		Final:      true,
+	})
+	if last.Error != "" {
+		t.Fatalf("last chunk: %s", last.Error)
+	}
+	stored, err := os.ReadFile(filepath.Join(directory, "nested", "large.bin"))
+	if err != nil {
+		t.Fatalf("read uploaded file: %v", err)
+	}
+	if !bytes.Equal(stored, content) {
+		t.Fatal("uploaded content mismatch")
+	}
+	entries, err := os.ReadDir(filepath.Join(directory, "nested"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), ".dockium-upload-") {
+			t.Fatalf("temporary upload file left behind: %s", entry.Name())
+		}
+	}
+}
+
+func TestFileUploadRejectsConflictAndBadOrder(t *testing.T) {
+	files, directory := newTestFiles(t)
+	if err := os.WriteFile(filepath.Join(directory, "exists.txt"), []byte("old"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	conflict := files.handleUpload(1, &agentv1.UploadFile{
+		InstanceId: 7,
+		Path:       "exists.txt",
+		Content:    []byte("new"),
+		UploadId:   "upload-conflict-1",
+		Offset:     0,
+	})
+	if conflict.Error == "" {
+		t.Fatal("upload without overwrite must fail for existing file")
+	}
+	badOrder := files.handleUpload(1, &agentv1.UploadFile{
+		InstanceId: 7,
+		Path:       "bad-order.bin",
+		Content:    []byte("chunk"),
+		UploadId:   "upload-bad-order-1",
+		Offset:     4,
+	})
+	if badOrder.Error == "" {
+		t.Fatal("upload starting at non-zero offset must fail")
 	}
 }
 

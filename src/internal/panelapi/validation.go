@@ -16,6 +16,7 @@ var (
 	containerNamePattern = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,62}$`)
 	envKeyPattern        = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 	networkPattern       = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,62}$`)
+	uploadIDPattern      = regexp.MustCompile(`^[a-zA-Z0-9_-]{8,80}$`)
 )
 
 var allowedEncodings = map[string]bool{

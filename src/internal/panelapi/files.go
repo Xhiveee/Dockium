@@ -3,6 +3,8 @@ package panelapi
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -137,11 +139,35 @@ func (s *Server) UploadFile(ctx context.Context, request *connect.Request[panelv
 	if err != nil {
 		return nil, err
 	}
-	if len(request.Msg.Content) > 32<<20 {
-		return nil, invalid("файл слишком большой (максимум 32 МБ)")
+	path := strings.TrimSpace(request.Msg.Path)
+	if path == "" {
+		return nil, invalid("укажите путь для загрузки")
+	}
+	uploadID := strings.TrimSpace(request.Msg.UploadId)
+	if !uploadIDPattern.MatchString(uploadID) {
+		return nil, invalid("некорректный идентификатор загрузки")
+	}
+	const maxChunkSize = 8 << 20
+	if len(request.Msg.Content) > maxChunkSize {
+		return nil, invalid("слишком большой фрагмент загрузки")
+	}
+	settings, err := s.store.PanelSettings(ctx)
+	if err != nil {
+		return nil, rpcError(err, "не удалось прочитать настройки панели")
+	}
+	maxBytes := uint64(settings.MaxUploadMB) << 20
+	size := uint64(len(request.Msg.Content))
+	if request.Msg.Offset > maxBytes || size > maxBytes-request.Msg.Offset {
+		return nil, invalid(fmt.Sprintf("файл слишком большой (максимум %d МБ)", settings.MaxUploadMB))
 	}
 	command := &agentv1.Command{Payload: &agentv1.Command_UploadFile{UploadFile: &agentv1.UploadFile{
-		InstanceId: instance.ID, Path: request.Msg.Path, Content: request.Msg.Content, Overwrite: request.Msg.Overwrite,
+		InstanceId: instance.ID,
+		Path:       path,
+		Content:    request.Msg.Content,
+		Overwrite:  request.Msg.Overwrite,
+		UploadId:   uploadID,
+		Offset:     request.Msg.Offset,
+		Final:      request.Msg.Final,
 	}}}
 	if _, err := s.hub.Execute(ctx, instance.AgentID, command, 3*time.Minute); err != nil {
 		return nil, rpcError(err, "не удалось загрузить файл")

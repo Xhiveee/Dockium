@@ -17,7 +17,8 @@ import {
   Upload,
 } from 'lucide-react'
 import { api, errorMessage } from '../../api/client'
-import { downloadToBrowser, decodeUtf8, encodeUtf8 } from '../../api/streams'
+import { downloadToBrowser, decodeUtf8, encodeUtf8, uploadFile } from '../../api/streams'
+import { useSettingsQuery } from '../../data/queries'
 import type { FileEntry, Instance } from '../../gen/panel/v1/panel_pb'
 import { baseName, extensionOf, joinPath, parentPath } from '../../lib/paths'
 import { formatBytes, formatDate, formatMode } from '../../lib/format'
@@ -63,6 +64,7 @@ function hasFiles(event: ReactDragEvent): boolean {
 export function FilesTab({ instance }: { instance: Instance }) {
   const toast = useToast()
   const queryClient = useQueryClient()
+  const settingsQuery = useSettingsQuery()
   const [path, setPath] = useState('')
   const [editor, setEditor] = useState<EditorState | null>(null)
   const [closeConfirm, setCloseConfirm] = useState(false)
@@ -76,7 +78,13 @@ export function FilesTab({ instance }: { instance: Instance }) {
   const [newFileValue, setNewFileValue] = useState('')
   const [working, setWorking] = useState(false)
   const [dragDepth, setDragDepth] = useState(0)
-  const [uploading, setUploading] = useState<{ done: number; total: number; current: string } | null>(null)
+  const [uploading, setUploading] = useState<{
+    done: number
+    total: number
+    current: string
+    uploadedBytes: number
+    totalBytes: number
+  } | null>(null)
   const [conflictFiles, setConflictFiles] = useState<File[] | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -114,23 +122,43 @@ export function FilesTab({ instance }: { instance: Instance }) {
 
   const uploadFiles = async (fileList: File[], overwrite: boolean) => {
     if (!fileList.length) return
-    setUploading({ done: 0, total: fileList.length, current: fileList[0]?.name ?? '' })
+    const maxUploadMB = settingsQuery.data?.maxUploadMb ?? 1024
+    const maxUploadBytes = maxUploadMB * 1024 * 1024
+    setUploading({
+      done: 0,
+      total: fileList.length,
+      current: fileList[0]?.name ?? '',
+      uploadedBytes: 0,
+      totalBytes: fileList[0]?.size ?? 0,
+    })
     try {
       for (let index = 0; index < fileList.length; index += 1) {
         const file = fileList[index]
         if (!file) continue
-        setUploading({ done: index, total: fileList.length, current: file.name })
-        const content = new Uint8Array(await file.arrayBuffer())
-        if (content.length > 32 * 1024 * 1024) {
-          throw new Error(`Файл ${file.name} больше 32 МБ`)
-        }
+        setUploading({
+          done: index,
+          total: fileList.length,
+          current: file.name,
+          uploadedBytes: 0,
+          totalBytes: file.size,
+        })
         try {
-          await api.files.uploadFile({
-            instanceId: instance.id,
-            path: joinPath(path, file.name),
-            content,
+          await uploadFile(
+            instance.id,
+            joinPath(path, file.name),
+            file,
             overwrite,
-          })
+            maxUploadBytes,
+            (uploadedBytes, totalBytes) => {
+              setUploading({
+                done: index,
+                total: fileList.length,
+                current: file.name,
+                uploadedBytes,
+                totalBytes,
+              })
+            },
+          )
         } catch (error) {
           if (!overwrite && errorMessage(error).includes('существует')) {
             setConflictFiles(fileList.slice(index))
@@ -139,7 +167,7 @@ export function FilesTab({ instance }: { instance: Instance }) {
           throw error
         }
       }
-      toast.success(overwrite ? 'Файлы заменены' : 'Файлы загружены', `${fileList.length} шт.`)
+      toast.success(overwrite ? 'Файлы заменены' : 'Файлы загружены', fileList.length + ' шт.')
       await refresh()
     } catch (error) {
       toast.error('Не удалось загрузить файлы', errorMessage(error))
@@ -493,11 +521,17 @@ export function FilesTab({ instance }: { instance: Instance }) {
           <div className={styles.uploadBar}>
             <span className={styles.uploadText}>
               Загрузка {Math.min(uploading.done + 1, uploading.total)} из {uploading.total}: {uploading.current}
+              {' · '}
+              {formatBytes(uploading.uploadedBytes)} / {formatBytes(uploading.totalBytes)}
+              {' · '}
+              {uploading.totalBytes > 0 ? Math.round((uploading.uploadedBytes / uploading.totalBytes) * 100) : 100}%
             </span>
             <span className={styles.uploadTrack}>
               <span
                 className={styles.uploadFill}
-                style={{ width: `${Math.round((uploading.done / Math.max(1, uploading.total)) * 100)}%` }}
+                style={{
+                  width: `${uploading.totalBytes > 0 ? Math.round((uploading.uploadedBytes / uploading.totalBytes) * 100) : 100}%`,
+                }}
               />
             </span>
           </div>
@@ -572,7 +606,9 @@ export function FilesTab({ instance }: { instance: Instance }) {
 
         <footer className={styles.footer}>
           <span>{entries.length} объектов</span>
-          <span className={styles.footerHint}>Перетащите файлы в эту панель, чтобы загрузить</span>
+          <span className={styles.footerHint}>
+            Перетащите файлы в эту панель, чтобы загрузить · до {settingsQuery.data?.maxUploadMb ?? 1024} МБ
+          </span>
         </footer>
 
         {dragDepth > 0 ? (

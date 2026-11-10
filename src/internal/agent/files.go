@@ -17,10 +17,11 @@ import (
 )
 
 const (
-	maxReadSize   = 2 << 20
-	maxWriteSize  = 4 << 20
-	maxUploadSize = 32 << 20
-	maxEntries    = 5000
+	maxReadSize        = 2 << 20
+	maxWriteSize       = 4 << 20
+	maxUploadChunkSize = 8 << 20
+	maxUploadSize      = 4096 << 20
+	maxEntries         = 5000
 )
 
 var (
@@ -147,6 +148,9 @@ func (f *fileService) handleList(id int64, request *agentv1.ListFiles) *agentv1.
 	for _, item := range items {
 		if len(entries) >= maxEntries {
 			break
+		}
+		if strings.HasPrefix(item.Name(), ".dockium-upload-") {
+			continue
 		}
 		childPath := item.Name()
 		if relative != "" {
@@ -317,23 +321,108 @@ func (f *fileService) handleRename(id int64, request *agentv1.RenamePath) *agent
 }
 
 func (f *fileService) handleUpload(id int64, request *agentv1.UploadFile) *agentv1.CommandResult {
-	if len(request.Content) > maxUploadSize {
+	if len(request.Content) > maxUploadChunkSize {
 		return result(id, nil, errTooLarge)
 	}
-	full, _, err := f.resolve(request.InstanceId, request.Path, false)
+	if !validUploadID(request.UploadId) {
+		return result(id, nil, errInvalidPath)
+	}
+	size := uint64(len(request.Content))
+	if request.Offset > maxUploadSize || size > maxUploadSize-request.Offset {
+		return result(id, nil, errTooLarge)
+	}
+	full, relative, err := f.resolve(request.InstanceId, request.Path, false)
 	if err != nil {
 		return result(id, nil, err)
 	}
-	if _, err := os.Stat(full); err == nil && !request.Overwrite {
-		return result(id, nil, errExists)
+	if relative == "" {
+		return result(id, nil, errInvalidPath)
 	}
 	if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
 		return result(id, nil, fmt.Errorf("создать каталог: %w", err))
 	}
-	if err := writeAtomic(full, request.Content, 0o644); err != nil {
-		return result(id, nil, err)
+	temp := filepath.Join(filepath.Dir(full), ".dockium-upload-"+request.UploadId)
+	if request.Offset == 0 {
+		_ = os.Remove(temp)
+		if _, err := os.Stat(full); err == nil && !request.Overwrite {
+			return result(id, nil, errExists)
+		}
+		if err := writeUploadChunk(temp, request.Content, false); err != nil {
+			return result(id, nil, err)
+		}
+	} else {
+		info, err := os.Stat(temp)
+		if err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				return result(id, nil, errors.New("загрузка не найдена, начните её заново"))
+			}
+			return result(id, nil, fmt.Errorf("проверить загрузку: %w", err))
+		}
+		if uint64(info.Size()) != request.Offset {
+			return result(id, nil, errors.New("нарушен порядок фрагментов загрузки"))
+		}
+		if err := writeUploadChunk(temp, request.Content, true); err != nil {
+			return result(id, nil, err)
+		}
+	}
+	if !request.Final {
+		return result(id, &agentv1.CommandResult_Empty{Empty: &agentv1.Empty{}}, nil)
+	}
+	if _, err := os.Stat(full); err == nil && !request.Overwrite {
+		_ = os.Remove(temp)
+		return result(id, nil, errExists)
+	}
+	if err := os.Chmod(temp, 0o644); err != nil {
+		_ = os.Remove(temp)
+		return result(id, nil, fmt.Errorf("изменить права: %w", err))
+	}
+	if err := os.Rename(temp, full); err != nil {
+		if request.Overwrite {
+			_ = os.Remove(full)
+			err = os.Rename(temp, full)
+		}
+		if err != nil {
+			_ = os.Remove(temp)
+			return result(id, nil, fmt.Errorf("сохранить файл: %w", err))
+		}
 	}
 	return result(id, &agentv1.CommandResult_Empty{Empty: &agentv1.Empty{}}, nil)
+}
+
+func validUploadID(value string) bool {
+	if len(value) < 8 || len(value) > 80 {
+		return false
+	}
+	for _, symbol := range value {
+		if (symbol >= 'a' && symbol <= 'z') || (symbol >= 'A' && symbol <= 'Z') ||
+			(symbol >= '0' && symbol <= '9') || symbol == '-' || symbol == '_' {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
+func writeUploadChunk(target string, data []byte, appendMode bool) error {
+	flags := os.O_WRONLY | os.O_CREATE
+	if appendMode {
+		flags |= os.O_APPEND
+	} else {
+		flags |= os.O_TRUNC
+	}
+	file, err := os.OpenFile(target, flags, 0o600)
+	if err != nil {
+		return fmt.Errorf("открыть временный файл: %w", err)
+	}
+	if _, err := file.Write(data); err != nil {
+		file.Close()
+		_ = os.Remove(target)
+		return fmt.Errorf("записать файл: %w", err)
+	}
+	if err := file.Close(); err != nil {
+		return fmt.Errorf("закрыть временный файл: %w", err)
+	}
+	return nil
 }
 
 func (f *fileService) handleChmod(id int64, request *agentv1.ChmodPath) *agentv1.CommandResult {
