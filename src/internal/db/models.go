@@ -95,6 +95,7 @@ type Agent struct {
 	NetOutBPS     uint64
 	LatencyMS     uint32
 	Online        bool
+	Enabled       bool
 	LastSeenAt    int64
 	ConnectedAt   int64
 	CreatedAt     int64

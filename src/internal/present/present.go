@@ -28,6 +28,7 @@ func Agent(agent *db.Agent, instancesTotal, instancesRunning uint32) *panelv1.Ag
 		Name:             agent.Name,
 		Country:          agent.Country,
 		Online:           agent.Online,
+		Enabled:          agent.Enabled,
 		Version:          agent.Version,
 		Hostname:         agent.Hostname,
 		Platform:         agent.Platform,

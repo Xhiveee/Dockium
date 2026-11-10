@@ -5,7 +5,10 @@ import {
   Cpu,
   HardDrive,
   MemoryStick,
+  Power,
+  PowerOff,
   RefreshCw,
+  RotateCw,
   Server,
   ShieldCheck,
   Trash2,
@@ -39,6 +42,7 @@ import { Dialog, Drawer } from '../ui/Dialog'
 import { Field, Input } from '../ui/Field'
 import { Menu, type MenuItem } from '../ui/Menu'
 import { Panel } from '../ui/Panel'
+import { Switch } from '../ui/Toggle'
 import { useToast } from '../ui/Toast'
 import { useSeries } from '../data/useSeries'
 import styles from './AgentsPage.module.css'
@@ -118,7 +122,7 @@ export function AgentsPage() {
     setBusy(true)
     setFormError('')
     try {
-      await api.agents.update({ id: editTarget.id, name: name.trim(), country: country.trim() })
+      await api.agents.update({ id: editTarget.id, name: name.trim(), country: country.trim(), enabled: editTarget.enabled })
       toast.success('Агент обновлён', name.trim())
       setEditTarget(null)
       await refresh()
@@ -161,6 +165,32 @@ export function AgentsPage() {
     }
   }
 
+  const setEnabled = async (agent: Agent, enabled: boolean) => {
+    setBusy(true)
+    try {
+      await api.agents.update({ id: agent.id, name: agent.name, country: agent.country, enabled })
+      toast.success(enabled ? 'Агент включён' : 'Агент отключён', agent.name)
+      await refresh()
+    } catch (error) {
+      toast.error('Не удалось обновить агента', errorMessage(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const reconnect = async (agent: Agent) => {
+    setBusy(true)
+    try {
+      await api.agents.reconnect({ id: agent.id })
+      toast.success('Переподключение запрошено', agent.name)
+      await refresh()
+    } catch (error) {
+      toast.error('Не удалось переподключить агента', errorMessage(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const menuFor = (agent: Agent): MenuItem[] => [
     {
       id: 'details',
@@ -172,6 +202,19 @@ export function AgentsPage() {
       id: 'edit',
       label: 'Изменить',
       onSelect: () => openEdit(agent),
+    },
+    {
+      id: 'reconnect',
+      label: 'Переподключить',
+      icon: <RotateCw size={14} />,
+      disabled: !agent.online || !agent.enabled,
+      onSelect: () => void reconnect(agent),
+    },
+    {
+      id: 'toggle',
+      label: agent.enabled ? 'Отключить' : 'Включить',
+      icon: agent.enabled ? <PowerOff size={14} /> : <Power size={14} />,
+      onSelect: () => void setEnabled(agent, !agent.enabled),
     },
     {
       id: 'rotate',
@@ -191,6 +234,9 @@ export function AgentsPage() {
   ]
 
   const online = agents.filter((agent) => agent.online).length
+  const detailsAgent = detailsTarget
+    ? agents.find((agent) => agent.id.toString() === detailsTarget.id.toString()) ?? detailsTarget
+    : null
 
   return (
     <div className={styles.page}>
@@ -257,7 +303,12 @@ export function AgentsPage() {
       ) : (
         <div className={styles.list} role="list">
           {agents.map((agent) => (
-            <AgentRow key={agent.id.toString()} agent={agent} menu={menuFor(agent)} onOpen={() => setDetailsTarget(agent)} />
+            <AgentRow
+              key={agent.id.toString()}
+              agent={agent}
+              menu={menuFor(agent)}
+              onOpen={() => setDetailsTarget(agent)}
+            />
           ))}
         </div>
       )}
@@ -389,26 +440,34 @@ export function AgentsPage() {
       <Drawer
         open={Boolean(detailsTarget)}
         onClose={() => setDetailsTarget(null)}
-        title={detailsTarget?.name}
-        description={detailsTarget ? `${detailsTarget.hostname || 'агент'} · ${detailsTarget.platform}/${detailsTarget.arch}` : undefined}
+        title={detailsAgent?.name}
+        description={detailsAgent ? `${detailsAgent.hostname || 'агент'} · ${detailsAgent.platform}/${detailsAgent.arch}` : undefined}
         width={560}
       >
-        {detailsTarget ? <AgentDetails agent={detailsTarget} /> : null}
+        {detailsAgent ? (
+          <AgentDetails
+            agent={detailsAgent}
+            busy={busy}
+            onToggleEnabled={(enabled) => void setEnabled(detailsAgent, enabled)}
+            onReconnect={() => void reconnect(detailsAgent)}
+          />
+        ) : null}
       </Drawer>
     </div>
   )
 }
 
 function AgentRow({ agent, menu, onOpen }: { agent: Agent; menu: MenuItem[]; onOpen: () => void }) {
+  const disabled = !agent.enabled
   const history = useSeries(agent.cpuPercent, 40)
   const memoryPercent =
     agent.memoryTotalBytes > 0n ? (Number(agent.memoryUsedBytes) / Number(agent.memoryTotalBytes)) * 100 : 0
   const diskPercent =
     agent.diskTotalBytes > 0n ? (Number(agent.diskUsedBytes) / Number(agent.diskTotalBytes)) * 100 : 0
   return (
-    <div className={styles.row} role="listitem">
+    <div className={cx(styles.row, disabled && styles.rowDisabled)} role="listitem">
       <button type="button" className={styles.nameCell} onClick={onOpen}>
-        <span className={cx(styles.dot, agent.online ? styles.dotOn : styles.dotOff)} aria-hidden />
+        <span className={cx(styles.dot, agent.online && agent.enabled ? styles.dotOn : styles.dotOff)} aria-hidden />
         <span className={styles.nameBlock}>
           <span className={styles.name}>
             {agent.name}
@@ -421,8 +480,8 @@ function AgentRow({ agent, menu, onOpen }: { agent: Agent; menu: MenuItem[]; onO
           </span>
         </span>
         <span className={styles.agentBadge}>
-          <Badge tone={agent.online ? 'success' : 'neutral'} dot>
-            {agent.online ? 'онлайн' : 'офлайн'}
+          <Badge tone={agent.online && agent.enabled ? 'success' : disabled ? 'warning' : 'neutral'} dot>
+            {agent.online && agent.enabled ? 'онлайн' : disabled ? 'отключён' : 'офлайн'}
           </Badge>
         </span>
       </button>
@@ -473,7 +532,17 @@ function AgentRow({ agent, menu, onOpen }: { agent: Agent; menu: MenuItem[]; onO
   )
 }
 
-function AgentDetails({ agent }: { agent: Agent }) {
+function AgentDetails({
+  agent,
+  busy,
+  onToggleEnabled,
+  onReconnect,
+}: {
+  agent: Agent
+  busy: boolean
+  onToggleEnabled: (enabled: boolean) => void
+  onReconnect: () => void
+}) {
   const history = useSeries(agent.cpuPercent, 48)
   const memoryPercent =
     agent.memoryTotalBytes > 0n ? (Number(agent.memoryUsedBytes) / Number(agent.memoryTotalBytes)) * 100 : 0
@@ -486,6 +555,30 @@ function AgentDetails({ agent }: { agent: Agent }) {
           {agent.dockerError || 'Агент не может связаться с Docker. Экземпляры не запустятся.'}
         </InlineNotice>
       ) : null}
+      {!agent.enabled ? (
+        <InlineNotice tone="warning" title="Агент отключён" icon={PowerOff}>
+          Панель не принимает соединения этого агента. Пока он отключён, его экземпляры
+          недоступны.
+        </InlineNotice>
+      ) : null}
+      <Panel title="Управление">
+        <div className={styles.agentControl}>
+          <Switch
+            checked={agent.enabled}
+            onChange={onToggleEnabled}
+            disabled={busy}
+            label={agent.enabled ? 'Агент включён' : 'Агент отключён'}
+            description={
+              agent.enabled
+                ? 'Отключённый агент не сможет подключиться к панели.'
+                : 'Агент сможет подключиться к панели.'
+            }
+          />
+          <Button variant="secondary" onClick={onReconnect} loading={busy} disabled={!agent.online || !agent.enabled}>
+            Переподключить
+          </Button>
+        </div>
+      </Panel>
       <Panel title="Нагрузка">
         <div className={styles.detailChart}>
           <Sparkline values={history} height={46} tone={agent.online ? 'success' : 'neutral'} label="Загрузка CPU" />

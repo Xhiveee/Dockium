@@ -51,6 +51,10 @@
   border-top: 1px solid var(--line);
 }
 
+.rowDisabled {
+  opacity: 0.55;
+}
+
 .row:hover {
   background: rgba(255, 255, 255, 0.017);
 }
@@ -209,6 +213,12 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.agentControl {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .detailChart {

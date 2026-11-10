@@ -228,6 +228,8 @@ message Ping {
   int64 nonce = 1;
 }
 
+message Reconnect {}
+
 message Command {
   int64 id = 1;
   oneof payload {
@@ -257,6 +259,7 @@ message Command {
     ConsoleDetach console_detach = 25;
     ConsoleInput console_input = 26;
     Ping ping = 27;
+    Reconnect reconnect = 28;
   }
 }
 

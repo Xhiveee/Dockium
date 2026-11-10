@@ -53,6 +53,10 @@ func (s *agentService) Delete(ctx context.Context, request *connect.Request[pane
 	return s.Server.DeleteAgent(ctx, request)
 }
 
+func (s *agentService) Reconnect(ctx context.Context, request *connect.Request[panelv1.UserIdRequest]) (*connect.Response[emptypb.Empty], error) {
+	return s.Server.ReconnectAgent(ctx, request)
+}
+
 type instanceService struct{ *Server }
 
 func (s *instanceService) List(ctx context.Context, request *connect.Request[emptypb.Empty]) (*connect.Response[panelv1.InstanceList], error) {

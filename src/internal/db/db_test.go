@@ -141,6 +141,16 @@ func TestAgentsAndInstances(t *testing.T) {
 	if err != nil || !online.Online || online.CPUPercent != 12.5 || online.LatencyMS != 7 {
 		t.Fatalf("agent state: %+v", online)
 	}
+	if !online.Enabled {
+		t.Fatal("agent must be enabled by default")
+	}
+	if err := database.UpdateAgent(ctx, agent.ID, "renamed", "US", false); err != nil {
+		t.Fatalf("update agent: %v", err)
+	}
+	disabled, err := database.AgentByID(ctx, agent.ID)
+	if err != nil || disabled.Name != "renamed" || disabled.Country != "US" || disabled.Enabled {
+		t.Fatalf("updated agent = %+v, err = %v", disabled, err)
+	}
 
 	instance, err := database.CreateInstance(ctx, &Instance{
 		Name:          "test",

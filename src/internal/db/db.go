@@ -232,4 +232,5 @@ var migrations = []string{
 		max_upload_mb INTEGER NOT NULL DEFAULT 1024 CHECK (max_upload_mb BETWEEN 1 AND 4096)
 	)`,
 	`INSERT INTO panel_settings (id, max_upload_mb) VALUES (1, 1024)`,
+	`ALTER TABLE agents ADD COLUMN enabled INTEGER NOT NULL DEFAULT 1`,
 }

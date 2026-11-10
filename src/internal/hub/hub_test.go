@@ -15,7 +15,9 @@ import (
 	"dockium/internal/realtime"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
 
 type fakeAgentServer struct {
@@ -247,6 +249,87 @@ func TestAgentSessionLifecycle(t *testing.T) {
 	})
 	if agentHub.Online(agent.ID) {
 		t.Fatal("agent must be offline after disconnect")
+	}
+}
+
+func TestDisabledAgentRejected(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	store, err := db.Open(ctx, t.TempDir()+"/panel.db")
+	if err != nil {
+		t.Fatalf("open db: %v", err)
+	}
+	defer store.Close()
+	if err := store.Migrate(ctx); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	rawToken, tokenHash, err := auth.NewToken()
+	if err != nil {
+		t.Fatalf("token: %v", err)
+	}
+	agent, err := store.CreateAgent(ctx, "local", "", tokenHash)
+	if err != nil {
+		t.Fatalf("create agent: %v", err)
+	}
+	if err := store.UpdateAgent(ctx, agent.ID, "local", "", false); err != nil {
+		t.Fatalf("disable agent: %v", err)
+	}
+
+	agentHub := New(store, realtime.NewPublisher(), logger)
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	grpcServer := grpc.NewServer()
+	agentv1.RegisterAgentServiceServer(grpcServer, &fakeAgentServer{hub: agentHub})
+	go func() { _ = grpcServer.Serve(listener) }()
+	defer grpcServer.Stop()
+
+	connection, err := grpc.NewClient(listener.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fatalf("dial: %v", err)
+	}
+	defer connection.Close()
+	client := agentv1.NewAgentServiceClient(connection)
+
+	dial := func() (agentv1.AgentService_ConnectClient, error) {
+		stream, err := client.Connect(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if err := stream.Send(&agentv1.AgentMessage{Payload: &agentv1.AgentMessage_Hello{Hello: &agentv1.Hello{
+			Token: rawToken, Version: "2.0.0", Hostname: "test-host", Platform: "linux", Arch: "amd64",
+		}}}); err != nil {
+			return nil, err
+		}
+		return stream, nil
+	}
+
+	disabledStream, err := dial()
+	if err != nil {
+		t.Fatalf("connect: %v", err)
+	}
+	if _, err := disabledStream.Recv(); status.Code(err) != codes.FailedPrecondition {
+		t.Fatalf("disabled agent error = %v", err)
+	}
+	if agentHub.Online(agent.ID) {
+		t.Fatal("disabled agent must not be online")
+	}
+
+	if err := store.UpdateAgent(ctx, agent.ID, "local", "", true); err != nil {
+		t.Fatalf("enable agent: %v", err)
+	}
+	enabledStream, err := dial()
+	if err != nil {
+		t.Fatalf("connect: %v", err)
+	}
+	message, err := enabledStream.Recv()
+	if err != nil {
+		t.Fatalf("enabled agent recv: %v", err)
+	}
+	if message.GetWelcome() == nil {
+		t.Fatalf("message = %+v", message)
 	}
 }
 

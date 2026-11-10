@@ -140,6 +140,7 @@ message Agent {
   int64 last_seen_at = 24;
   int64 connected_at = 25;
   int64 created_at = 26;
+  bool enabled = 27;
 }
 
 message AgentList {
@@ -182,6 +183,7 @@ message UpdateAgentRequest {
   int64 id = 1;
   string name = 2;
   string country = 3;
+  bool enabled = 4;
 }
 
 service AgentService {
@@ -191,6 +193,7 @@ service AgentService {
   rpc Update(UpdateAgentRequest) returns (Agent);
   rpc Delete(UserIdRequest) returns (google.protobuf.Empty);
   rpc RotateToken(UserIdRequest) returns (AgentToken);
+  rpc Reconnect(UserIdRequest) returns (google.protobuf.Empty);
 }
 
 enum InstanceStatus {

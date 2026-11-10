@@ -712,6 +712,7 @@ const (
 	AgentService_Update_FullMethodName      = "/dockium.panel.v1.AgentService/Update"
 	AgentService_Delete_FullMethodName      = "/dockium.panel.v1.AgentService/Delete"
 	AgentService_RotateToken_FullMethodName = "/dockium.panel.v1.AgentService/RotateToken"
+	AgentService_Reconnect_FullMethodName   = "/dockium.panel.v1.AgentService/Reconnect"
 )
 
 // AgentServiceClient is the client API for AgentService service.
@@ -724,6 +725,7 @@ type AgentServiceClient interface {
 	Update(ctx context.Context, in *UpdateAgentRequest, opts ...grpc.CallOption) (*Agent, error)
 	Delete(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RotateToken(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (*AgentToken, error)
+	Reconnect(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type agentServiceClient struct {
@@ -803,6 +805,16 @@ func (c *agentServiceClient) RotateToken(ctx context.Context, in *UserIdRequest,
 	return out, nil
 }
 
+func (c *agentServiceClient) Reconnect(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AgentService_Reconnect_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AgentServiceServer is the server API for AgentService service.
 // All implementations must embed UnimplementedAgentServiceServer
 // for forward compatibility.
@@ -813,6 +825,7 @@ type AgentServiceServer interface {
 	Update(context.Context, *UpdateAgentRequest) (*Agent, error)
 	Delete(context.Context, *UserIdRequest) (*emptypb.Empty, error)
 	RotateToken(context.Context, *UserIdRequest) (*AgentToken, error)
+	Reconnect(context.Context, *UserIdRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAgentServiceServer()
 }
 
@@ -840,6 +853,9 @@ func (UnimplementedAgentServiceServer) Delete(context.Context, *UserIdRequest) (
 }
 func (UnimplementedAgentServiceServer) RotateToken(context.Context, *UserIdRequest) (*AgentToken, error) {
 	return nil, status.Error(codes.Unimplemented, "method RotateToken not implemented")
+}
+func (UnimplementedAgentServiceServer) Reconnect(context.Context, *UserIdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method Reconnect not implemented")
 }
 func (UnimplementedAgentServiceServer) mustEmbedUnimplementedAgentServiceServer() {}
 func (UnimplementedAgentServiceServer) testEmbeddedByValue()                      {}
@@ -963,6 +979,24 @@ func _AgentService_RotateToken_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_Reconnect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).Reconnect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_Reconnect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).Reconnect(ctx, req.(*UserIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AgentService_ServiceDesc is the grpc.ServiceDesc for AgentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -989,6 +1023,10 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RotateToken",
 			Handler:    _AgentService_RotateToken_Handler,
+		},
+		{
+			MethodName: "Reconnect",
+			Handler:    _AgentService_Reconnect_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

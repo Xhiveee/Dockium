@@ -123,6 +123,10 @@ func (h *Hub) Connect(stream agentv1.AgentService_ConnectServer) error {
 		h.log.Warn("agent authentication failed", "remote", peerAddress(stream), "error", err)
 		return status.Error(codes.Unauthenticated, "неизвестный токен агента")
 	}
+	if !agent.Enabled {
+		h.log.Info("agent connection rejected: disabled", "agent_id", agent.ID, "name", agent.Name)
+		return status.Error(codes.FailedPrecondition, "агент отключён")
+	}
 
 	ctx, cancel := context.WithCancel(stream.Context())
 	now := time.Now()

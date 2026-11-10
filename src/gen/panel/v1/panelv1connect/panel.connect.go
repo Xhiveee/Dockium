@@ -100,6 +100,8 @@ const (
 	// AgentServiceRotateTokenProcedure is the fully-qualified name of the AgentService's RotateToken
 	// RPC.
 	AgentServiceRotateTokenProcedure = "/dockium.panel.v1.AgentService/RotateToken"
+	// AgentServiceReconnectProcedure is the fully-qualified name of the AgentService's Reconnect RPC.
+	AgentServiceReconnectProcedure = "/dockium.panel.v1.AgentService/Reconnect"
 	// InstanceServiceListProcedure is the fully-qualified name of the InstanceService's List RPC.
 	InstanceServiceListProcedure = "/dockium.panel.v1.InstanceService/List"
 	// InstanceServiceGetProcedure is the fully-qualified name of the InstanceService's Get RPC.
@@ -685,6 +687,7 @@ type AgentServiceClient interface {
 	Update(context.Context, *connect.Request[v1.UpdateAgentRequest]) (*connect.Response[v1.Agent], error)
 	Delete(context.Context, *connect.Request[v1.UserIdRequest]) (*connect.Response[emptypb.Empty], error)
 	RotateToken(context.Context, *connect.Request[v1.UserIdRequest]) (*connect.Response[v1.AgentToken], error)
+	Reconnect(context.Context, *connect.Request[v1.UserIdRequest]) (*connect.Response[emptypb.Empty], error)
 }
 
 // NewAgentServiceClient constructs a client for the dockium.panel.v1.AgentService service. By
@@ -734,6 +737,12 @@ func NewAgentServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(agentServiceMethods.ByName("RotateToken")),
 			connect.WithClientOptions(opts...),
 		),
+		reconnect: connect.NewClient[v1.UserIdRequest, emptypb.Empty](
+			httpClient,
+			baseURL+AgentServiceReconnectProcedure,
+			connect.WithSchema(agentServiceMethods.ByName("Reconnect")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -745,6 +754,7 @@ type agentServiceClient struct {
 	update      *connect.Client[v1.UpdateAgentRequest, v1.Agent]
 	delete      *connect.Client[v1.UserIdRequest, emptypb.Empty]
 	rotateToken *connect.Client[v1.UserIdRequest, v1.AgentToken]
+	reconnect   *connect.Client[v1.UserIdRequest, emptypb.Empty]
 }
 
 // List calls dockium.panel.v1.AgentService.List.
@@ -777,6 +787,11 @@ func (c *agentServiceClient) RotateToken(ctx context.Context, req *connect.Reque
 	return c.rotateToken.CallUnary(ctx, req)
 }
 
+// Reconnect calls dockium.panel.v1.AgentService.Reconnect.
+func (c *agentServiceClient) Reconnect(ctx context.Context, req *connect.Request[v1.UserIdRequest]) (*connect.Response[emptypb.Empty], error) {
+	return c.reconnect.CallUnary(ctx, req)
+}
+
 // AgentServiceHandler is an implementation of the dockium.panel.v1.AgentService service.
 type AgentServiceHandler interface {
 	List(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.AgentList], error)
@@ -785,6 +800,7 @@ type AgentServiceHandler interface {
 	Update(context.Context, *connect.Request[v1.UpdateAgentRequest]) (*connect.Response[v1.Agent], error)
 	Delete(context.Context, *connect.Request[v1.UserIdRequest]) (*connect.Response[emptypb.Empty], error)
 	RotateToken(context.Context, *connect.Request[v1.UserIdRequest]) (*connect.Response[v1.AgentToken], error)
+	Reconnect(context.Context, *connect.Request[v1.UserIdRequest]) (*connect.Response[emptypb.Empty], error)
 }
 
 // NewAgentServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -830,6 +846,12 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(agentServiceMethods.ByName("RotateToken")),
 		connect.WithHandlerOptions(opts...),
 	)
+	agentServiceReconnectHandler := connect.NewUnaryHandler(
+		AgentServiceReconnectProcedure,
+		svc.Reconnect,
+		connect.WithSchema(agentServiceMethods.ByName("Reconnect")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/dockium.panel.v1.AgentService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AgentServiceListProcedure:
@@ -844,6 +866,8 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 			agentServiceDeleteHandler.ServeHTTP(w, r)
 		case AgentServiceRotateTokenProcedure:
 			agentServiceRotateTokenHandler.ServeHTTP(w, r)
+		case AgentServiceReconnectProcedure:
+			agentServiceReconnectHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -875,6 +899,10 @@ func (UnimplementedAgentServiceHandler) Delete(context.Context, *connect.Request
 
 func (UnimplementedAgentServiceHandler) RotateToken(context.Context, *connect.Request[v1.UserIdRequest]) (*connect.Response[v1.AgentToken], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("dockium.panel.v1.AgentService.RotateToken is not implemented"))
+}
+
+func (UnimplementedAgentServiceHandler) Reconnect(context.Context, *connect.Request[v1.UserIdRequest]) (*connect.Response[emptypb.Empty], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("dockium.panel.v1.AgentService.Reconnect is not implemented"))
 }
 
 // InstanceServiceClient is a client for the dockium.panel.v1.InstanceService service.

@@ -176,6 +176,34 @@ func TestSetupLoginPermissionsAndCsrf(t *testing.T) {
 		t.Fatalf("create agent status = %d, payload = %v", status, payload)
 	}
 
+	_, payload = server.call(t, server.admin, "/dockium.panel.v1.AgentService/Update", map[string]any{
+		"id": "1", "name": "local", "country": "RU", "enabled": false,
+	}, nil)
+	disabledFlag, _ := payload["enabled"].(bool)
+	if status != http.StatusOK || disabledFlag {
+		t.Fatalf("disable agent status = %d, payload = %v", status, payload)
+	}
+	_, payload = server.call(t, server.admin, "/dockium.panel.v1.AgentService/List", map[string]any{}, nil)
+	agentItems, _ := payload["items"].([]any)
+	if len(agentItems) != 1 {
+		t.Fatalf("agents = %v", payload)
+	}
+	agentItem, _ := agentItems[0].(map[string]any)
+	agentEnabled, _ := agentItem["enabled"].(bool)
+	if agentEnabled {
+		t.Fatalf("agent enabled = %v", agentItem["enabled"])
+	}
+	_, payload = server.call(t, server.admin, "/dockium.panel.v1.AgentService/Update", map[string]any{
+		"id": "1", "name": "local", "country": "RU", "enabled": true,
+	}, nil)
+	if status != http.StatusOK || payload["enabled"] != true {
+		t.Fatalf("enable agent status = %d, payload = %v", status, payload)
+	}
+	_, payload = server.call(t, server.admin, "/dockium.panel.v1.AgentService/Reconnect", map[string]any{"id": "1"}, nil)
+	if errorCode(payload) != "failed_precondition" {
+		t.Fatalf("reconnect offline payload = %v", payload)
+	}
+
 	status, payload = server.call(t, server.admin, "/dockium.panel.v1.InstanceService/Create", map[string]any{
 		"name": "Web test", "agentId": "1", "image": "nginx:alpine", "autoStart": true,
 	}, nil)

@@ -29,7 +29,7 @@ type AgentTelemetry struct {
 
 const agentColumns = `id, name, country, token_hash, version, hostname, platform, arch, docker_version,
 	docker_ok, docker_error, cpu_model, cpu_cores, cpu_percent, mem_used, mem_total, disk_used, disk_total,
-	net_in_bps, net_out_bps, latency_ms, online, last_seen_at, connected_at, created_at`
+	net_in_bps, net_out_bps, latency_ms, online, enabled, last_seen_at, connected_at, created_at`
 
 type rowScanner interface {
 	Scan(dest ...any) error
@@ -40,7 +40,7 @@ func scanAgent(row rowScanner) (*Agent, error) {
 	err := row.Scan(&agent.ID, &agent.Name, &agent.Country, &agent.TokenHash, &agent.Version, &agent.Hostname,
 		&agent.Platform, &agent.Arch, &agent.DockerVersion, &agent.DockerOK, &agent.DockerError, &agent.CPUModel,
 		&agent.CPUCores, &agent.CPUPercent, &agent.MemUsed, &agent.MemTotal, &agent.DiskUsed, &agent.DiskTotal,
-		&agent.NetInBPS, &agent.NetOutBPS, &agent.LatencyMS, &agent.Online, &agent.LastSeenAt, &agent.ConnectedAt,
+		&agent.NetInBPS, &agent.NetOutBPS, &agent.LatencyMS, &agent.Online, &agent.Enabled, &agent.LastSeenAt, &agent.ConnectedAt,
 		&agent.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -62,7 +62,7 @@ func (d *DB) CreateAgent(ctx context.Context, name, country, tokenHash string) (
 	if err != nil {
 		return nil, fmt.Errorf("create agent id: %w", err)
 	}
-	return &Agent{ID: id, Name: name, Country: country, TokenHash: tokenHash, CreatedAt: now}, nil
+	return &Agent{ID: id, Name: name, Country: country, TokenHash: tokenHash, Enabled: true, CreatedAt: now}, nil
 }
 
 func (d *DB) AgentByTokenHash(ctx context.Context, hash string) (*Agent, error) {
@@ -92,8 +92,8 @@ func (d *DB) ListAgents(ctx context.Context) ([]*Agent, error) {
 	return items, rows.Err()
 }
 
-func (d *DB) UpdateAgent(ctx context.Context, id int64, name, country string) error {
-	_, err := d.sql.ExecContext(ctx, `UPDATE agents SET name = ?, country = ? WHERE id = ?`, name, country, id)
+func (d *DB) UpdateAgent(ctx context.Context, id int64, name, country string, enabled bool) error {
+	_, err := d.sql.ExecContext(ctx, `UPDATE agents SET name = ?, country = ?, enabled = ? WHERE id = ?`, name, country, enabled, id)
 	if err != nil {
 		return fmt.Errorf("update agent: %w", err)
 	}

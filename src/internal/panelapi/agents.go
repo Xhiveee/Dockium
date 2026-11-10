@@ -7,6 +7,7 @@ import (
 	"connectrpc.com/connect"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 
+	agentv1 "dockium/gen/agent/v1"
 	panelv1 "dockium/gen/panel/v1"
 	"dockium/internal/auth"
 	"dockium/internal/present"
@@ -109,8 +110,11 @@ func (s *Server) UpdateAgent(ctx context.Context, request *connect.Request[panel
 	if _, err := s.store.AgentByID(ctx, request.Msg.Id); err != nil {
 		return nil, rpcError(err, "агент не найден")
 	}
-	if err := s.store.UpdateAgent(ctx, request.Msg.Id, name, strings.TrimSpace(request.Msg.Country)); err != nil {
+	if err := s.store.UpdateAgent(ctx, request.Msg.Id, name, strings.TrimSpace(request.Msg.Country), request.Msg.Enabled); err != nil {
 		return nil, rpcError(err, "не удалось обновить агента")
+	}
+	if !request.Msg.Enabled {
+		s.hub.CloseAgent(request.Msg.Id)
 	}
 	s.hub.PublishAgent(request.Msg.Id)
 	agent, err := s.store.AgentByID(ctx, request.Msg.Id)
@@ -161,6 +165,23 @@ func (s *Server) RotateToken(ctx context.Context, request *connect.Request[panel
 	}
 	s.hub.CloseAgent(agent.ID)
 	return connect.NewResponse(&panelv1.AgentToken{Id: agent.ID, Token: raw}), nil
+}
+
+func (s *Server) ReconnectAgent(ctx context.Context, request *connect.Request[panelv1.UserIdRequest]) (*connect.Response[emptypb.Empty], error) {
+	if _, err := s.requireAdmin(ctx); err != nil {
+		return nil, err
+	}
+	agent, err := s.store.AgentByID(ctx, request.Msg.Id)
+	if err != nil {
+		return nil, rpcError(err, "агент не найден")
+	}
+	if !s.hub.Online(agent.ID) {
+		return nil, failedPrecondition("агент офлайн: действие недоступно")
+	}
+	if err := s.hub.Send(agent.ID, &agentv1.Command{Payload: &agentv1.Command_Reconnect{Reconnect: &agentv1.Reconnect{}}}); err != nil {
+		return nil, rpcError(err, "не удалось отправить команду агенту")
+	}
+	return emptyResponse(), nil
 }
 
 func (s *Server) agentsSnapshot(ctx context.Context) ([]*panelv1.Agent, error) {

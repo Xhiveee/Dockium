@@ -18,9 +18,11 @@ import (
 	agentv1 "dockium/gen/agent/v1"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/status"
 )
 
 type Config struct {
@@ -70,15 +72,22 @@ func Run(ctx context.Context, cfg Config, log *slog.Logger) error {
 		if ctx.Err() != nil {
 			return nil
 		}
-		if time.Since(started) > 30*time.Second {
+		disabled := isDisabledError(err)
+		delay := backoff
+		if disabled {
+			delay = disabledRetryDelay
+		} else if time.Since(started) > 30*time.Second {
 			backoff = time.Second
 		}
-		log.Warn("agent connection lost", "error", err, "retry_in", backoff.String())
-		jitter := time.Duration(rand.Int63n(int64(backoff / 2)))
+		log.Warn("agent connection lost", "error", err, "retry_in", delay.String())
+		jitter := time.Duration(rand.Int63n(int64(delay / 2)))
 		select {
 		case <-ctx.Done():
 			return nil
-		case <-time.After(backoff + jitter):
+		case <-time.After(delay + jitter):
+		}
+		if disabled {
+			continue
 		}
 		backoff *= 2
 		if backoff > 30*time.Second {
@@ -201,6 +210,11 @@ func (c *Client) runSession(parent context.Context) error {
 			c.enqueue(&agentv1.AgentMessage{Payload: &agentv1.AgentMessage_Pong{Pong: &agentv1.Pong{Nonce: payload.Ping.Nonce}}})
 		case *agentv1.ServerMessage_Command:
 			command := payload.Command
+			if command.GetReconnect() != nil {
+				shutdown()
+				<-senderDone
+				return errors.New("переподключение по запросу панели")
+			}
 			select {
 			case semaphore <- struct{}{}:
 			case <-c.done:
@@ -319,6 +333,16 @@ func (c *Client) dockerVersion(ctx context.Context) string {
 	c.dockerVer = version
 	c.dockerChecked = time.Now()
 	return version
+}
+
+const disabledRetryDelay = 60 * time.Second
+
+func isDisabledError(err error) bool {
+	var grpcStatus interface{ GRPCStatus() *status.Status }
+	if errors.As(err, &grpcStatus) {
+		return grpcStatus.GRPCStatus().Code() == codes.FailedPrecondition
+	}
+	return false
 }
 
 func receiveWelcome(stream agentv1.AgentService_ConnectClient, timeout time.Duration) (*agentv1.Welcome, error) {
