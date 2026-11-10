@@ -5311,6 +5311,7 @@ type LoginLog struct {
 	Os            string                 `protobuf:"bytes,8,opt,name=os,proto3" json:"os,omitempty"`
 	CreatedAt     int64                  `protobuf:"varint,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	Country       string                 `protobuf:"bytes,10,opt,name=country,proto3" json:"country,omitempty"`
+	CountryCode   string                 `protobuf:"bytes,11,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5415,6 +5416,13 @@ func (x *LoginLog) GetCountry() string {
 	return ""
 }
 
+func (x *LoginLog) GetCountryCode() string {
+	if x != nil {
+		return x.CountryCode
+	}
+	return ""
+}
+
 type LoginLogList struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Items         []*LoginLog            `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
@@ -5476,6 +5484,7 @@ type Ban struct {
 	BannedAt      int64                  `protobuf:"varint,5,opt,name=banned_at,json=bannedAt,proto3" json:"banned_at,omitempty"`
 	ExpiresAt     int64                  `protobuf:"varint,6,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 	Country       string                 `protobuf:"bytes,7,opt,name=country,proto3" json:"country,omitempty"`
+	CountryCode   string                 `protobuf:"bytes,8,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5555,6 +5564,13 @@ func (x *Ban) GetExpiresAt() int64 {
 func (x *Ban) GetCountry() string {
 	if x != nil {
 		return x.Country
+	}
+	return ""
+}
+
+func (x *Ban) GetCountryCode() string {
+	if x != nil {
+		return x.CountryCode
 	}
 	return ""
 }
@@ -6855,7 +6871,7 @@ const file_panel_v1_panel_proto_rawDesc = "" +
 	"\x04kind\x18\x05 \x01(\x0e2\x1e.dockium.panel.v1.ScheduleKindR\x04kind\x12)\n" +
 	"\x10interval_minutes\x18\x06 \x01(\rR\x0fintervalMinutes\x12\x1e\n" +
 	"\vtime_of_day\x18\a \x01(\tR\ttimeOfDay\x12\x18\n" +
-	"\aenabled\x18\b \x01(\bR\aenabled\"\xf4\x01\n" +
+	"\aenabled\x18\b \x01(\bR\aenabled\"\x97\x02\n" +
 	"\bLoginLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
 	"\x05login\x18\x02 \x01(\tR\x05login\x12\x18\n" +
@@ -6869,10 +6885,11 @@ const file_panel_v1_panel_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\t \x01(\x03R\tcreatedAt\x12\x18\n" +
 	"\acountry\x18\n" +
-	" \x01(\tR\acountry\"V\n" +
+	" \x01(\tR\acountry\x12!\n" +
+	"\fcountry_code\x18\v \x01(\tR\vcountryCode\"V\n" +
 	"\fLoginLogList\x120\n" +
 	"\x05items\x18\x01 \x03(\v2\x1a.dockium.panel.v1.LoginLogR\x05items\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\rR\x05total\"\xab\x01\n" +
+	"\x05total\x18\x02 \x01(\rR\x05total\"\xce\x01\n" +
 	"\x03Ban\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x0e\n" +
 	"\x02ip\x18\x02 \x01(\tR\x02ip\x12\x16\n" +
@@ -6881,7 +6898,8 @@ const file_panel_v1_panel_proto_rawDesc = "" +
 	"\tbanned_at\x18\x05 \x01(\x03R\bbannedAt\x12\x1d\n" +
 	"\n" +
 	"expires_at\x18\x06 \x01(\x03R\texpiresAt\x12\x18\n" +
-	"\acountry\x18\a \x01(\tR\acountry\"L\n" +
+	"\acountry\x18\a \x01(\tR\acountry\x12!\n" +
+	"\fcountry_code\x18\b \x01(\tR\vcountryCode\"L\n" +
 	"\aBanList\x12+\n" +
 	"\x05items\x18\x01 \x03(\v2\x15.dockium.panel.v1.BanR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\rR\x05total\"P\n" +

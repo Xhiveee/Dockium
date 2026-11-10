@@ -100,35 +100,35 @@ func TestSessionsAndSecurity(t *testing.T) {
 	if err != nil || failures != 5 {
 		t.Fatalf("failures = %d, err = %v", failures, err)
 	}
-	logID, err := database.InsertLoginLog(ctx, &LoginLog{Login: "admin", Success: true, IP: "8.8.8.8", Country: "США", CreatedAt: Now()})
+	logID, err := database.InsertLoginLog(ctx, &LoginLog{Login: "admin", Success: true, IP: "8.8.8.8", Country: "США", CountryCode: "US", CreatedAt: Now()})
 	if err != nil {
 		t.Fatalf("login log with country: %v", err)
 	}
-	if err := database.UpdateLoginLogCountry(ctx, logID, "United States"); err != nil {
+	if err := database.UpdateLoginLogCountry(ctx, logID, "United States", "US"); err != nil {
 		t.Fatalf("update login log country: %v", err)
 	}
 	logs, err := database.ListLoginLogs(ctx, 10, 0)
 	if err != nil || len(logs) != 6 {
 		t.Fatalf("list login logs: %v, %d", err, len(logs))
 	}
-	if logs[0].ID != logID || logs[0].Country != "United States" {
+	if logs[0].ID != logID || logs[0].Country != "United States" || logs[0].CountryCode != "US" {
 		t.Fatalf("login log country = %+v", logs[0])
 	}
 	ban, err := database.CreateBan(ctx, &Ban{IP: "10.0.0.1", Reason: "test", Source: "auto", Country: "Локальная сеть", BannedAt: Now(), ExpiresAt: Now() + 60_000})
 	if err != nil {
 		t.Fatalf("create ban: %v", err)
 	}
-	if ban.Country != "Локальная сеть" {
-		t.Fatalf("ban country = %q", ban.Country)
+	if ban.Country != "Локальная сеть" || ban.CountryCode != "" {
+		t.Fatalf("ban country = %q, code = %q", ban.Country, ban.CountryCode)
 	}
-	if err := database.UpdateBanCountry(ctx, ban.ID, "Netherlands"); err != nil {
+	if err := database.UpdateBanCountry(ctx, ban.ID, "Netherlands", "NL"); err != nil {
 		t.Fatalf("update ban country: %v", err)
 	}
-	if active, err := database.ActiveBan(ctx, "10.0.0.1", Now()); err != nil || active.ID != ban.ID || active.Country != "Netherlands" {
+	if active, err := database.ActiveBan(ctx, "10.0.0.1", Now()); err != nil || active.ID != ban.ID || active.Country != "Netherlands" || active.CountryCode != "NL" {
 		t.Fatalf("active ban: %v", err)
 	}
 	bans, err := database.ListBans(ctx, Now())
-	if err != nil || len(bans) != 1 || bans[0].Country != "Netherlands" {
+	if err != nil || len(bans) != 1 || bans[0].Country != "Netherlands" || bans[0].CountryCode != "NL" {
 		t.Fatalf("list bans: %v, %+v", err, bans)
 	}
 	if _, err := database.ActiveBan(ctx, "10.0.0.1", Now()+120_000); !errors.Is(err, ErrNotFound) {

@@ -185,12 +185,13 @@ func (s *Server) loginFailure(ctx context.Context, username, ip, userAgent, reas
 	}
 	country, resolved := geoip.Classify(ip)
 	ban, err := s.store.CreateBan(ctx, &db.Ban{
-		IP:        ip,
-		Reason:    "5 неудачных попыток входа за 10 минут",
-		Source:    "auto",
-		Country:   country,
-		BannedAt:  db.Now(),
-		ExpiresAt: db.Now() + 60*60*1000,
+		IP:          ip,
+		Reason:      "5 неудачных попыток входа за 10 минут",
+		Source:      "auto",
+		Country:     country.Name,
+		CountryCode: country.Code,
+		BannedAt:    db.Now(),
+		ExpiresAt:   db.Now() + 60*60*1000,
 	})
 	if err != nil {
 		s.log.Warn("create auto ban", "error", err)

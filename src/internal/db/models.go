@@ -43,26 +43,28 @@ type Session struct {
 }
 
 type LoginLog struct {
-	ID        int64
-	Login     string
-	Success   bool
-	Reason    string
-	IP        string
-	UserAgent string
-	Browser   string
-	OS        string
-	Country   string
-	CreatedAt int64
+	ID          int64
+	Login       string
+	Success     bool
+	Reason      string
+	IP          string
+	UserAgent   string
+	Browser     string
+	OS          string
+	Country     string
+	CountryCode string
+	CreatedAt   int64
 }
 
 type Ban struct {
-	ID        int64
-	IP        string
-	Reason    string
-	Source    string
-	Country   string
-	BannedAt  int64
-	ExpiresAt int64
+	ID          int64
+	IP          string
+	Reason      string
+	Source      string
+	Country     string
+	CountryCode string
+	BannedAt    int64
+	ExpiresAt   int64
 }
 
 type ApiRequest struct {

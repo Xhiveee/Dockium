@@ -644,6 +644,7 @@ message LoginLog {
   string os = 8;
   int64 created_at = 9;
   string country = 10;
+  string country_code = 11;
 }
 
 message LoginLogList {
@@ -659,6 +660,7 @@ message Ban {
   int64 banned_at = 5;
   int64 expires_at = 6;
   string country = 7;
+  string country_code = 8;
 }
 
 message BanList {

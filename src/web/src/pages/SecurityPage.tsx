@@ -6,6 +6,7 @@ import {
   Ban as BanIcon,
   CheckCircle2,
   KeyRound,
+  Network,
   Plus,
   ShieldCheck,
   Trash2,
@@ -283,7 +284,7 @@ export function SecurityPage() {
                 </div>
                 <span className={styles.primaryText}>{entry.login || '—'}</span>
                 <span className={styles.mono}>{entry.ip || '—'}</span>
-                <span className={styles.secondaryText}>{entry.country || '—'}</span>
+                <CountryCell name={entry.country} code={entry.countryCode} />
                 <span className={styles.secondaryText}>{entry.browser || '—'}</span>
                 <span className={cx(styles.secondaryText, styles.osCell)}>{entry.os || '—'}</span>
                 <span className={styles.reason}>{entry.reason || '—'}</span>
@@ -321,7 +322,7 @@ export function SecurityPage() {
             filteredBans.map((ban) => (
               <div className={cx(styles.row, styles.banRow)} key={ban.id.toString()}>
                 <span className={styles.mono}>{ban.ip}</span>
-                <span className={styles.secondaryText}>{ban.country || '—'}</span>
+                <CountryCell name={ban.country} code={ban.countryCode} />
                 <span className={styles.reason}>{ban.reason || '—'}</span>
                 <div>
                   <Badge tone={ban.source === 'auto' ? 'warning' : 'neutral'}>
@@ -512,6 +513,23 @@ export function SecurityPage() {
         </p>
       </Dialog>
     </div>
+  )
+}
+
+function CountryCell({ name, code }: { name: string; code: string }) {
+  if (!name) {
+    return <span className={styles.secondaryText}>—</span>
+  }
+  const flag = /^[a-z]{2}$/i.test(code) ? `fi-${code.toLowerCase()}` : ''
+  return (
+    <span className={cx(styles.secondaryText, styles.countryCell)}>
+      {flag ? (
+        <span className={cx(styles.flag, 'fi', flag)} aria-hidden />
+      ) : (
+        <Network size={12} className={styles.countryIcon} aria-hidden />
+      )}
+      <span className={styles.countryName}>{name}</span>
+    </span>
   )
 }
 

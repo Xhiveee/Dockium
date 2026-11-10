@@ -1,6 +1,9 @@
 package geoip
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestIsLocal(t *testing.T) {
 	cases := []struct {
@@ -37,12 +40,12 @@ func TestIsLocal(t *testing.T) {
 
 func TestClassify(t *testing.T) {
 	country, resolved := Classify("192.168.0.1")
-	if !resolved || country != LocalNetwork {
-		t.Fatalf("Classify(local) = %q, %v", country, resolved)
+	if !resolved || country.Name != LocalNetwork || country.Code != "" {
+		t.Fatalf("Classify(local) = %+v, %v", country, resolved)
 	}
 	country, resolved = Classify("::1")
-	if !resolved || country != LocalNetwork {
-		t.Fatalf("Classify(loopback6) = %q, %v", country, resolved)
+	if !resolved || country.Name != LocalNetwork || country.Code != "" {
+		t.Fatalf("Classify(loopback6) = %+v, %v", country, resolved)
 	}
 	if _, resolved = Classify(""); !resolved {
 		t.Fatal("Classify(empty) must be resolved")
@@ -52,5 +55,18 @@ func TestClassify(t *testing.T) {
 	}
 	if _, resolved = Classify("8.8.8.8"); resolved {
 		t.Fatal("Classify(public) must be unresolved")
+	}
+}
+
+func TestCacheRoundTrip(t *testing.T) {
+	remember("8.8.8.8", Country{Name: "United States", Code: "US"}, time.Hour)
+	t.Cleanup(func() {
+		mu.Lock()
+		delete(cache, "8.8.8.8")
+		mu.Unlock()
+	})
+	country, resolved := Classify("8.8.8.8")
+	if !resolved || country.Name != "United States" || country.Code != "US" {
+		t.Fatalf("Classify(cached) = %+v, %v", country, resolved)
 	}
 }

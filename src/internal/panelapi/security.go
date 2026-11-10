@@ -30,6 +30,10 @@ func (s *Server) ListLoginLogs(ctx context.Context, request *connect.Request[pan
 	}
 	items := make([]*panelv1.LoginLog, 0, len(entries))
 	for _, entry := range entries {
+		if countryUnresolved(entry.IP, entry.Country, entry.CountryCode) {
+			pending := *entry
+			go s.resolveLoginCountry(&pending)
+		}
 		items = append(items, present.LoginLog(entry))
 	}
 	return connect.NewResponse(&panelv1.LoginLogList{Items: items, Total: uint32(total)}), nil
@@ -49,7 +53,7 @@ func (s *Server) ListBans(ctx context.Context, request *connect.Request[panelv1.
 	}
 	items := make([]*panelv1.Ban, 0, len(bans))
 	for _, ban := range bans {
-		if ban.Country == "" {
+		if countryUnresolved(ban.IP, ban.Country, ban.CountryCode) {
 			pending := *ban
 			go s.resolveBanCountry(&pending)
 		}
@@ -79,12 +83,13 @@ func (s *Server) CreateBan(ctx context.Context, request *connect.Request[panelv1
 	}
 	country, resolved := geoip.Classify(ip)
 	ban, err := s.store.CreateBan(ctx, &db.Ban{
-		IP:        ip,
-		Reason:    reason,
-		Source:    "manual",
-		Country:   country,
-		BannedAt:  db.Now(),
-		ExpiresAt: db.Now() + int64(hours)*3600*1000,
+		IP:          ip,
+		Reason:      reason,
+		Source:      "manual",
+		Country:     country.Name,
+		CountryCode: country.Code,
+		BannedAt:    db.Now(),
+		ExpiresAt:   db.Now() + int64(hours)*3600*1000,
 	})
 	if err != nil {
 		return nil, rpcError(err, "не удалось добавить блокировку")
@@ -176,6 +181,10 @@ func (s *Server) RevokeSession(ctx context.Context, request *connect.Request[pan
 		response.Header().Set("Set-Cookie", s.clearCookie().String())
 	}
 	return response, nil
+}
+
+func countryUnresolved(ip, country, code string) bool {
+	return !geoip.IsLocal(ip) && (country == "" || code == "")
 }
 
 func (s *Server) WatchSecurity(ctx context.Context, _ *connect.Request[emptypb.Empty], stream *connect.ServerStream[panelv1.SecurityEvent]) error {

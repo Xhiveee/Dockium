@@ -235,4 +235,6 @@ var migrations = []string{
 	`ALTER TABLE agents ADD COLUMN enabled INTEGER NOT NULL DEFAULT 1`,
 	`ALTER TABLE login_logs ADD COLUMN country TEXT NOT NULL DEFAULT ''`,
 	`ALTER TABLE ip_bans ADD COLUMN country TEXT NOT NULL DEFAULT ''`,
+	`ALTER TABLE login_logs ADD COLUMN country_code TEXT NOT NULL DEFAULT ''`,
+	`ALTER TABLE ip_bans ADD COLUMN country_code TEXT NOT NULL DEFAULT ''`,
 }

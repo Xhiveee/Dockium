@@ -2,6 +2,7 @@ package geoip
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/netip"
@@ -12,6 +13,11 @@ import (
 
 const LocalNetwork = "Локальная сеть"
 
+type Country struct {
+	Name string
+	Code string
+}
+
 var (
 	client = &http.Client{Timeout: 3 * time.Second}
 	mu     sync.Mutex
@@ -19,7 +25,7 @@ var (
 )
 
 type cachedCountry struct {
-	value     string
+	value     Country
 	expiresAt time.Time
 }
 
@@ -42,69 +48,78 @@ func IsLocal(raw string) bool {
 	return addr.IsLoopback() || addr.IsPrivate() || addr.IsLinkLocalUnicast() || addr.IsUnspecified()
 }
 
-func cached(raw string) (string, bool) {
+func cached(raw string) (Country, bool) {
 	mu.Lock()
 	defer mu.Unlock()
 	entry, ok := cache[raw]
 	if !ok || time.Now().After(entry.expiresAt) {
-		return "", false
+		return Country{}, false
 	}
 	return entry.value, true
 }
 
-func remember(raw, value string, ttl time.Duration) {
+func remember(raw string, value Country, ttl time.Duration) {
 	mu.Lock()
 	defer mu.Unlock()
 	cache[raw] = cachedCountry{value: value, expiresAt: time.Now().Add(ttl)}
 }
 
-func Classify(raw string) (country string, resolved bool) {
+func Classify(raw string) (country Country, resolved bool) {
 	if strings.TrimSpace(raw) == "" {
-		return "", true
+		return Country{}, true
 	}
 	if IsLocal(raw) {
-		return LocalNetwork, true
+		return Country{Name: LocalNetwork}, true
 	}
 	if _, ok := parseAddr(raw); !ok {
-		return "", true
+		return Country{}, true
 	}
 	return cached(raw)
 }
 
-func CountryForIP(ctx context.Context, raw string) string {
+func CountryForIP(ctx context.Context, raw string) Country {
 	country, resolved := Classify(raw)
 	if resolved {
 		return country
 	}
 	addr, ok := parseAddr(raw)
 	if !ok {
-		remember(raw, "", 10*time.Minute)
-		return ""
+		remember(raw, Country{}, 10*time.Minute)
+		return Country{}
 	}
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://ipapi.co/"+addr.String()+"/country_name/", nil)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://ipapi.co/"+addr.String()+"/json/", nil)
 	if err != nil {
-		return ""
+		return Country{}
 	}
 	response, err := client.Do(request)
 	if err != nil {
-		remember(raw, "", 10*time.Minute)
-		return ""
+		remember(raw, Country{}, 10*time.Minute)
+		return Country{}
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		remember(raw, "", 10*time.Minute)
-		return ""
+		remember(raw, Country{}, 10*time.Minute)
+		return Country{}
 	}
-	body, err := io.ReadAll(io.LimitReader(response.Body, 256))
+	body, err := io.ReadAll(io.LimitReader(response.Body, 8192))
 	if err != nil {
-		return ""
+		return Country{}
 	}
-	country = strings.TrimSpace(string(body))
-	if strings.Contains(country, "{") {
-		country = ""
+	var payload struct {
+		Name  string `json:"country_name"`
+		Code  string `json:"country_code"`
+		Error bool   `json:"error"`
+	}
+	if err := json.Unmarshal(body, &payload); err != nil || payload.Error {
+		remember(raw, Country{}, 10*time.Minute)
+		return Country{}
+	}
+	country = Country{
+		Name: strings.TrimSpace(payload.Name),
+		Code: strings.ToUpper(strings.TrimSpace(payload.Code)),
 	}
 	ttl := 24 * time.Hour
-	if country == "" {
+	if country.Name == "" {
 		ttl = 10 * time.Minute
 	}
 	remember(raw, country, ttl)

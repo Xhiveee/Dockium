@@ -420,15 +420,16 @@ func (s *Server) loginLog(ctx context.Context, login string, success bool, reaso
 	browser, osName := auth.ParseUserAgent(userAgent)
 	country, resolved := geoip.Classify(ip)
 	entry := &db.LoginLog{
-		Login:     login,
-		Success:   success,
-		Reason:    reason,
-		IP:        ip,
-		UserAgent: userAgent,
-		Browser:   browser,
-		OS:        osName,
-		Country:   country,
-		CreatedAt: db.Now(),
+		Login:       login,
+		Success:     success,
+		Reason:      reason,
+		IP:          ip,
+		UserAgent:   userAgent,
+		Browser:     browser,
+		OS:          osName,
+		Country:     country.Name,
+		CountryCode: country.Code,
+		CreatedAt:   db.Now(),
 	}
 	id, err := s.store.InsertLoginLog(ctx, entry)
 	if err != nil {
@@ -448,16 +449,17 @@ func (s *Server) resolveLoginCountry(entry *db.LoginLog) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	country := geoip.CountryForIP(ctx, entry.IP)
-	if country == "" {
+	if country.Name == "" {
 		return
 	}
 	saveCtx, saveCancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer saveCancel()
-	if err := s.store.UpdateLoginLogCountry(saveCtx, entry.ID, country); err != nil {
+	if err := s.store.UpdateLoginLogCountry(saveCtx, entry.ID, country.Name, country.Code); err != nil {
 		s.log.Warn("update login log country", "error", err)
 		return
 	}
-	entry.Country = country
+	entry.Country = country.Name
+	entry.CountryCode = country.Code
 	s.publisher.LoginLogged(entry)
 }
 
@@ -465,16 +467,17 @@ func (s *Server) resolveBanCountry(ban *db.Ban) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	country := geoip.CountryForIP(ctx, ban.IP)
-	if country == "" {
+	if country.Name == "" {
 		return
 	}
 	saveCtx, saveCancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer saveCancel()
-	if err := s.store.UpdateBanCountry(saveCtx, ban.ID, country); err != nil {
+	if err := s.store.UpdateBanCountry(saveCtx, ban.ID, country.Name, country.Code); err != nil {
 		s.log.Warn("update ban country", "error", err)
 		return
 	}
-	ban.Country = country
+	ban.Country = country.Name
+	ban.CountryCode = country.Code
 	s.publisher.BanChanged(ban)
 }
 

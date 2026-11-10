@@ -115,6 +115,30 @@
   white-space: nowrap;
 }
 
+.countryCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.countryName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flag {
+  flex: none;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+.countryIcon {
+  flex: none;
+  color: var(--ink-3);
+}
+
 .reason {
   font-size: 10.5px;
   color: var(--ink-3);

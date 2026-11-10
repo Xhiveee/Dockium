@@ -224,8 +224,9 @@ func LoginLog(entry *db.LoginLog) *panelv1.LoginLog {
 		UserAgent: entry.UserAgent,
 		Browser:   entry.Browser,
 		Os:        entry.OS,
-		Country:   entry.Country,
-		CreatedAt: entry.CreatedAt,
+		Country:     entry.Country,
+		CountryCode: entry.CountryCode,
+		CreatedAt:   entry.CreatedAt,
 	}
 }
 
@@ -237,10 +238,11 @@ func Ban(ban *db.Ban) *panelv1.Ban {
 		Id:        ban.ID,
 		Ip:        ban.IP,
 		Reason:    ban.Reason,
-		Source:    ban.Source,
-		Country:   ban.Country,
-		BannedAt:  ban.BannedAt,
-		ExpiresAt: ban.ExpiresAt,
+		Source:      ban.Source,
+		Country:     ban.Country,
+		CountryCode: ban.CountryCode,
+		BannedAt:    ban.BannedAt,
+		ExpiresAt:   ban.ExpiresAt,
 	}
 }
 
