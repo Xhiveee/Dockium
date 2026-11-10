@@ -254,6 +254,11 @@ func TestSetupLoginPermissionsAndCsrf(t *testing.T) {
 		t.Fatalf("csrf payload = %v", payload)
 	}
 
+	status, payload = server.call(t, server.admin, "/dockium.panel.v1.AuthService/Me", map[string]any{}, map[string]string{"Origin": "http://127.0.0.1:49590"})
+	if status != http.StatusOK {
+		t.Fatalf("loopback origin status = %d, payload = %v", status, payload)
+	}
+
 	status, payload = server.call(t, server.admin, "/dockium.panel.v1.AuthService/Logout", map[string]any{}, nil)
 	if status != http.StatusOK {
 		t.Fatalf("logout status = %d, payload = %v", status, payload)

@@ -278,9 +278,24 @@ func (s *Server) verifyOrigin(header http.Header) error {
 		}
 	}
 	if !strings.EqualFold(parsed.Host, host) {
+		if loopbackHost(parsed.Host) && loopbackHost(host) {
+			return nil
+		}
 		return connect.NewError(connect.CodePermissionDenied, errors.New("запрос с другого источника отклонён"))
 	}
 	return nil
+}
+
+func loopbackHost(value string) bool {
+	name, _, err := net.SplitHostPort(value)
+	if err != nil {
+		name = value
+	}
+	if name == "localhost" {
+		return true
+	}
+	ip := net.ParseIP(strings.Trim(name, "[]"))
+	return ip != nil && ip.IsLoopback()
 }
 
 func (s *Server) clientIP(header http.Header, peer string) string {
